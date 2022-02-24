@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Policy
+        xmlns="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17"
+        xmlns:xacml="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        PolicyId="samplepolicy:1"
+        RuleCombiningAlgId="urn:oasis:names:tc:xacml:3.0:rule-combining-algorithm:deny-overrides"
+        Version="1.0">
+    <Description>example policy</Description>
+    <Target/>
+    <Rule RuleId="samplerule:1" Effect="Permit">
+        <Description>sample rule 1</Description>
+        <Target/>
+        <Condition>
+            <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                <Apply FunctionId="com:columbia:abac:xacml:3.0:function:trim">
+                    <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-one-and-only">
+                        <Apply FunctionId="com:columbia:abac:xacml:3.0:function:attr-sql-query">
+
+                            <Apply FunctionId="com:columbia:abac:xacml:3.0:function:trim">
+                                <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">
+                                    SELECT attributes FROM columbia_members WHERE ref=?
+                                </AttributeValue>
+                            </Apply>
+
+                            <Apply FunctionId="com:columbia:abac:xacml:3.0:function:trim">
+                                <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">
+                                    /Attributes/name/text()
+                                </AttributeValue>
+                            </Apply>
+
+                            <Apply FunctionId="com:columbia:abac:xacml:3.0:function:trim">
+                                <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-one-and-only">
+                                    <AttributeDesignator
+                                            Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject"
+                                            AttributeId="urn:oasis:names:tc:xacml:3.0:example:attribute:id"
+                                            DataType="http://www.w3.org/2001/XMLSchema#string"
+                                            MustBePresent="true"/>
+                                </Apply>
+                            </Apply>
+
+                        </Apply>
+                    </Apply>
+                </Apply>
+
+                <Apply FunctionId="com:columbia:abac:xacml:3.0:function:trim">
+                    <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">
+                        bob
+                    </AttributeValue>
+                </Apply>
+            </Apply>
+        </Condition>
+    </Rule>
+</Policy>

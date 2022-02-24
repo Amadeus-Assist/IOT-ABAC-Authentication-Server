@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="http://columbia/abac/authentication/ext/2"
+           xmlns="http://www.w3.org/1999/xhtml"
+           elementFormDefault="qualified" version="1.0">
+    <xs:element name="Attributes">
+        <xs:annotation>
+            <xs:documentation>
+                Complex type to store attributes into database.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>
