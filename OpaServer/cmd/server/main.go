@@ -185,7 +185,7 @@ PERMIT{
 			"user":   "bob",
 			"groups": []interface{}{"sales", "marketing"},
 		},
-		"ref":  "bob213",
+		"ref":  "bob21",
 		"role": "super",
 	}
 
