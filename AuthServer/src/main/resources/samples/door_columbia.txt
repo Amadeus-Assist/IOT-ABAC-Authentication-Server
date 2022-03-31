@@ -1,0 +1,25 @@
+[
+    {
+        "key": "rule_1",
+        "content": [
+            "sub_owner_attr := sql_query(\"SELECT attrs FROM user_attrs WHERE user_id = ?\", [input.sub.owner_id])",
+            "sub_owner_attr.university == \"columbia university\""
+        ]
+    },{
+        "key": "rule_2",
+        "content": [
+            "sub_owner_attr := sql_query(\"SELECT attrs FROM user_attrs WHERE user_id = ?\", [input.sub.owner_id])",
+            "roles := [\"professor\", \"student\"]",
+            "roles[_] == sub_owner_attr.role",
+            "clock_now := time_clock([time.now_ns(), \"America/New_York\"])",
+            "clock_now[0] >= 6",
+            "clock_now[0] < 23"
+        ]
+    },{
+        "key": "rule_2",
+        "content": [
+            "sub_owner_attr := sql_query(\"SELECT attrs FROM user_attrs WHERE user_id = ?\", [input.sub.owner_id])",
+            "sub_owner_attr.role == \"administrator\""
+        ]
+    }
+]

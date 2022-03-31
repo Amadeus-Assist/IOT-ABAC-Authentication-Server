@@ -3,6 +3,8 @@ module OpaServer
 go 1.18
 
 require (
+	github.com/bluele/gcache v0.0.2
+	github.com/dgrijalva/lfu-go v0.0.0-20141010002404-f174e76c5138
 	github.com/gin-contrib/cors v1.3.1
 	github.com/gin-gonic/gin v1.7.7
 	github.com/go-sql-driver/mysql v1.6.0

@@ -3,9 +3,12 @@ package opa_server_config
 import (
 	"database/sql"
 	"fmt"
+	"github.com/bluele/gcache"
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/rego"
 	"github.com/open-policy-agent/opa/types"
+	"strings"
+	"time"
 )
 
 type queriedAttributes struct {
@@ -13,13 +16,23 @@ type queriedAttributes struct {
 }
 
 func PrepareRego(context OPAServerContext) {
+	context.FuncCacheTTL = 3600 * 12
+	context.MaxCacheEntry = 10000
+	context.FuncCache = gcache.New(context.MaxCacheEntry).LFU().Build()
 	rego.RegisterBuiltin2(&rego.Function{
 		Name: "sql_query",
 		Decl: types.NewFunction(
 			types.Args(types.S, types.NewArray(make([]types.Type, 0), types.S)),
 			types.A,
 		),
+		Memoize: true,
 	}, func(_ rego.BuiltinContext, tempTerm, paramsTerm *ast.Term) (*ast.Term, error) {
+		var funcArgs = []*ast.Term{tempTerm, paramsTerm}
+		cacheKey := buildCacheKey("sql_query", funcArgs)
+		cacheRes, prs := checkCache(context.FuncCache, cacheKey)
+		if prs {
+			return &cacheRes, nil
+		}
 
 		temp, ok1 := tempTerm.Value.(ast.String)
 		params, ok2 := paramsTerm.Value.(*ast.Array)
@@ -62,10 +75,6 @@ func PrepareRego(context OPAServerContext) {
 			return nil, nil
 		}
 
-		attributes.attrs = `{
-"name": "zhangsan"
-}`
-
 		fmt.Printf("result: %v\n", attributes.attrs)
 
 		astTerm, err := ast.ParseTerm(attributes.attrs)
@@ -76,6 +85,45 @@ func PrepareRego(context OPAServerContext) {
 		}
 		fmt.Printf("res term: %v\n", astTerm)
 
+		err = pushToCache(context.FuncCache, cacheKey, astTerm, context.FuncCacheTTL)
+		if err != nil {
+			fmt.Printf("push to cache error: %v\n", err)
+			return nil, nil
+		}
+
 		return astTerm, nil
 	})
+}
+
+func checkCache(cache gcache.Cache, cacheKey string) (ast.Term, bool) {
+	value, err := cache.GetIFPresent(cacheKey)
+	if err != nil {
+		return ast.Term{}, false
+	}
+	term, ok := value.(ast.Term)
+	if !ok {
+		return ast.Term{}, false
+	}
+	return term, true
+}
+
+func buildCacheKey(funcName string, args []*ast.Term) string {
+	var sb strings.Builder
+	sb.WriteString(funcName)
+	sb.WriteString("(")
+	for _, arg := range args {
+		sb.WriteString(arg.String())
+		sb.WriteString(",")
+	}
+	sb.WriteString(")")
+	return sb.String()
+}
+
+func pushToCache(cache gcache.Cache, key string, value *ast.Term, expireTime int64) error {
+	err := cache.SetWithExpire(key, *value, time.Duration(expireTime)*time.Second)
+	if err != nil {
+		fmt.Printf("set lfu cache error: %v\n", err)
+		return err
+	}
+	return nil
 }

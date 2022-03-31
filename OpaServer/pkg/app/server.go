@@ -18,7 +18,7 @@ func NewServer(router *gin.Engine, opaEvalService api.OpaEvalService) *Server {
 func (s *Server) Run() error {
 	r := s.Routes()
 
-	err := r.Run()
+	err := r.Run(":8081")
 
 	if err != nil {
 		log.Printf("server - there was an error calling Run on router: %v\n", err)

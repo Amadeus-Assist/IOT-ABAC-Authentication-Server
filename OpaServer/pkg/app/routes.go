@@ -8,7 +8,7 @@ func (s *Server) Routes() *gin.Engine {
 	// group all routes under /v1/api
 	v1 := router.Group("/opa")
 	{
-		v1.GET("/eval", s.Eval())
+		v1.POST("/eval", s.Eval())
 	}
 
 	return router
