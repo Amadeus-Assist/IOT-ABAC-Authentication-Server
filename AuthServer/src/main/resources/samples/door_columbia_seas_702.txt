@@ -2,14 +2,14 @@
     {
         "key": "rule_2",
         "content": [
-            "sub_owner_attr := sql_query(\"SELECT attrs FROM user_attrs WHERE user_id = ?\", [input.sub.owner_id])",
+            "sub_owner_attr := sql_query(\"abac\", \"SELECT attrs FROM user_attrs WHERE user_id = ?\", [input.sub.owner_id])",
             "sub_owner_attr.role == \"student\"",
             "sub_owner_attr.instructor_uni == \"bob145\""
         ]
     },{
         "key": "rule_2",
         "content": [
-            "sub_owner_attr := sql_query(\"SELECT attrs FROM user_attrs WHERE user_id = ?\", [input.sub.owner_id])",
+            "sub_owner_attr := sql_query(\"abac\", \"SELECT attrs FROM user_attrs WHERE user_id = ?\", [input.sub.owner_id])",
             "sub_owner_attr.uni == \"bob145\""
         ]
     }

@@ -2,6 +2,7 @@ package app
 
 import (
 	"OpaServer/pkg/api"
+	"OpaServer/pkg/opa_server_config"
 	"github.com/gin-gonic/gin"
 	"log"
 )
@@ -9,10 +10,11 @@ import (
 type Server struct {
 	router         *gin.Engine
 	opaEvalService api.OpaEvalService
+	context        *opa_server_config.OPAServerContext
 }
 
-func NewServer(router *gin.Engine, opaEvalService api.OpaEvalService) *Server {
-	return &Server{router: router, opaEvalService: opaEvalService}
+func NewServer(router *gin.Engine, opaEvalService api.OpaEvalService, context *opa_server_config.OPAServerContext) *Server {
+	return &Server{router: router, opaEvalService: opaEvalService, context: context}
 }
 
 func (s *Server) Run() error {

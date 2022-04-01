@@ -2,7 +2,7 @@
     {
         "key": "rule_3",
         "content": [
-            "sub_owner_attr := sql_query(\"SELECT attrs FROM user_attrs WHERE user_id = ?\", [input.sub.owner_id])",
+            "sub_owner_attr := sql_query(\"abac\", \"SELECT attrs FROM user_attrs WHERE user_id = ?\", [input.sub.owner_id])",
             "sub_owner_attr.school == \"columbia engineering\""
         ]
     }

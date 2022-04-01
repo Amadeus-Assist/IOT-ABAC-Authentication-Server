@@ -7,5 +7,4 @@ const (
 
 type OpaEvalRequest struct {
 	AccessRequest string `json:"access_request"`
-	Policy        string `json:"policy"`
 }

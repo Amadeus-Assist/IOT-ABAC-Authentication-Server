@@ -1,12 +1,15 @@
 package opa_server_config
 
 import (
+	"OpaServer/pkg/utils"
 	"database/sql"
 	"fmt"
 	"github.com/bluele/gcache"
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/rego"
 	"github.com/open-policy-agent/opa/types"
+	"io/ioutil"
+	"net/http"
 	"strings"
 	"time"
 )
@@ -15,29 +18,29 @@ type queriedAttributes struct {
 	attrs string
 }
 
-func PrepareRego(context OPAServerContext) {
-	context.FuncCacheTTL = 3600 * 12
-	context.MaxCacheEntry = 10000
-	context.FuncCache = gcache.New(context.MaxCacheEntry).LFU().Build()
-	rego.RegisterBuiltin2(&rego.Function{
+func PrepareRego(context *OPAServerContext) {
+	rego.RegisterBuiltin3(&rego.Function{
 		Name: "sql_query",
 		Decl: types.NewFunction(
-			types.Args(types.S, types.NewArray(make([]types.Type, 0), types.S)),
+			types.Args(types.S, types.S, types.NewArray(make([]types.Type, 0), types.S)),
 			types.A,
 		),
-		Memoize: true,
-	}, func(_ rego.BuiltinContext, tempTerm, paramsTerm *ast.Term) (*ast.Term, error) {
+	}, func(_ rego.BuiltinContext, datasourceTerm, tempTerm, paramsTerm *ast.Term) (*ast.Term, error) {
+		start := time.Now().UnixMicro()
 		var funcArgs = []*ast.Term{tempTerm, paramsTerm}
 		cacheKey := buildCacheKey("sql_query", funcArgs)
-		cacheRes, prs := checkCache(context.FuncCache, cacheKey)
-		if prs {
-			return &cacheRes, nil
+		if context.UseCache {
+			cacheRes, prs := checkCache(context.FuncCache, cacheKey)
+			if prs {
+				return &cacheRes, nil
+			}
 		}
 
-		temp, ok1 := tempTerm.Value.(ast.String)
-		params, ok2 := paramsTerm.Value.(*ast.Array)
+		datasource, ok1 := datasourceTerm.Value.(ast.String)
+		temp, ok2 := tempTerm.Value.(ast.String)
+		params, ok3 := paramsTerm.Value.(*ast.Array)
 
-		if !ok1 || !ok2 {
+		if !ok1 || !ok2 || !ok3 {
 			fmt.Printf("convert param err\n")
 			return nil, nil
 		}
@@ -47,7 +50,13 @@ func PrepareRego(context OPAServerContext) {
 			paramsSlice[i] = string(params.Elem(i).Value.(ast.String))
 		}
 
-		res, err := context.SqlDB.Query(string(temp), paramsSlice...)
+		sqlConn, prs := context.SqlDB[string(datasource)]
+		if !prs {
+			fmt.Printf("unable to find corresponding datasource: %v\n", datasource)
+			return nil, nil
+		}
+
+		res, err := sqlConn.Query(string(temp), paramsSlice...)
 		fmt.Printf("query temp: %v, params: %v\n", temp, paramsSlice)
 
 		if err != nil {
@@ -85,11 +94,113 @@ func PrepareRego(context OPAServerContext) {
 		}
 		fmt.Printf("res term: %v\n", astTerm)
 
-		err = pushToCache(context.FuncCache, cacheKey, astTerm, context.FuncCacheTTL)
-		if err != nil {
-			fmt.Printf("push to cache error: %v\n", err)
+		if context.UseCache {
+			err = pushToCache(context.FuncCache, cacheKey, astTerm, context.FuncCacheTTL)
+			if err != nil {
+				fmt.Printf("push to cache error: %v\n", err)
+				return nil, nil
+			}
+		}
+
+		funcKey := "sql_query(" + string(datasource) + ")"
+		elapse := time.Now().UnixMicro() - start
+		oldElapse, prsE := context.FuncTimeCounter[funcKey]
+		if !prsE {
+			context.FuncTimeCounter[funcKey] = elapse
+		} else {
+			rate := utils.EWMA_RATE
+			newElapse := int64(float64(oldElapse)*(1-rate) + rate*float64(elapse))
+			context.FuncTimeCounter[funcKey] = newElapse
+		}
+
+		fmt.Printf("counter:\n%v\n", context.FuncTimeCounter)
+
+		return astTerm, nil
+	})
+
+	rego.RegisterBuiltin2(&rego.Function{
+		Name: "api_get_obj_term",
+		Decl: types.NewFunction(
+			types.Args(types.S, types.NewArray(make([]types.Type, 0), types.S)),
+			types.A,
+		),
+	}, func(_ rego.BuiltinContext, urlPrefixTerm, paramsTerm *ast.Term) (*ast.Term, error) {
+		start := time.Now().UnixMicro()
+
+		urlPrefix, ok1 := urlPrefixTerm.Value.(ast.String)
+		params, ok2 := paramsTerm.Value.(*ast.Array)
+		if !ok1 || !ok2 {
+			fmt.Printf("convert param err\n")
 			return nil, nil
 		}
+
+		var funcArgs = []*ast.Term{paramsTerm}
+		cacheKey := buildCacheKey("api_get_obj_term", funcArgs)
+
+		if context.UseCache {
+			cacheRes, prs := checkCache(context.FuncCache, cacheKey)
+			if prs {
+				return &cacheRes, nil
+			}
+		}
+
+		var sb strings.Builder
+
+		sb.WriteString(string(urlPrefix))
+		sb.WriteString("/")
+
+		params.Foreach(func(term *ast.Term) {
+			sb.WriteString(string(term.Value.(ast.String)))
+			sb.WriteString("/")
+		})
+
+		tmpUrl := sb.String()
+
+		finalUrl := tmpUrl[:len(tmpUrl)-1]
+
+		resp, err := http.Get(finalUrl)
+		if err != nil {
+			fmt.Printf("api_get_obj_term, get fail: %v\n", err)
+			return nil, nil
+		}
+
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			fmt.Printf("api_get_obj_term, invalid response: %v\n", err)
+			return nil, nil
+		}
+
+		responseContent := string(body)
+
+		fmt.Printf("result: %v\n", responseContent)
+
+		astTerm, err := ast.ParseTerm(responseContent)
+		if err != nil {
+			fmt.Printf("Parse term error, source: %v, err: %v\n", responseContent, err)
+			return nil, nil
+		}
+		fmt.Printf("res term: %v\n", astTerm)
+
+		if context.UseCache {
+			err = pushToCache(context.FuncCache, cacheKey, astTerm, context.FuncCacheTTL)
+			if err != nil {
+				fmt.Printf("push to cache error: %v\n", err)
+				return nil, nil
+			}
+		}
+
+		funcKey := "api_get_obj_term(" + string(urlPrefix) + ")"
+		elapse := time.Now().UnixMicro() - start
+		oldElapse, prsE := context.FuncTimeCounter[funcKey]
+		if !prsE {
+			context.FuncTimeCounter[funcKey] = elapse
+		} else {
+			rate := utils.EWMA_RATE
+			newElapse := int64(float64(oldElapse)*(1-rate) + rate*float64(elapse))
+			context.FuncTimeCounter[funcKey] = newElapse
+		}
+
+		fmt.Printf("counter:\n%v\n", context.FuncTimeCounter)
 
 		return astTerm, nil
 	})
@@ -104,6 +215,7 @@ func checkCache(cache gcache.Cache, cacheKey string) (ast.Term, bool) {
 	if !ok {
 		return ast.Term{}, false
 	}
+	fmt.Printf("hit cache!\n")
 	return term, true
 }
 

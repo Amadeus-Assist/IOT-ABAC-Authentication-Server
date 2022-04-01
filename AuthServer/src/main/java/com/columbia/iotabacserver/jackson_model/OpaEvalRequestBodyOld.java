@@ -7,6 +7,7 @@ import lombok.*;
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
-public class OpaEvalRequestBody {
+public class OpaEvalRequestBodyOld {
     private String access_request;
+    private String policy;
 }

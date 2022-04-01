@@ -5,6 +5,7 @@ import com.columbia.iotabacserver.dao.model.ObjectHierarchyPojo;
 import com.columbia.iotabacserver.dao.model.PolicyPojo;
 import com.columbia.iotabacserver.dao.model.UserAttrsPojo;
 import com.columbia.iotabacserver.jackson_model.OpaEvalRequestBody;
+import com.columbia.iotabacserver.jackson_model.OpaEvalRequestBodyOld;
 import com.columbia.iotabacserver.jackson_model.RuleJsonModel;
 import com.columbia.iotabacserver.rest.OpaEvalResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -17,15 +18,12 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.util.ResourceUtils;
 import com.columbia.iotabacserver.utils.LocalBeanFactory;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.util.*;
 
@@ -52,12 +50,12 @@ class IotabacserverApplicationTests {
     }
 
     @Test
-    void updatePolicy(){
+    void updatePolicy() {
         AuthzMapper mapper = LocalBeanFactory.getBean(AuthzMapper.class);
-        String policyRef = "door_columbia_seas_702";
+        String policyRef = "door_columbia";
         String contents = null;
         try {
-            File file = ResourceUtils.getFile("classpath:samples\\door_columbia_seas_702.txt");
+            File file = ResourceUtils.getFile("classpath:samples\\door_columbia.txt");
             contents = Files.readString(file.toPath());
         } catch (IOException e) {
             e.printStackTrace();
@@ -91,7 +89,7 @@ class IotabacserverApplicationTests {
     }
 
     @Test
-    void updateUserAttrs(){
+    void updateUserAttrs() {
         AuthzMapper mapper = LocalBeanFactory.getBean(AuthzMapper.class);
         String userId = "alice_5832";
         String attrs = null;
@@ -107,95 +105,96 @@ class IotabacserverApplicationTests {
 
     @Test
     void basicEval() throws JsonProcessingException {
-        // get and parse the access request
-        String arFile = "classpath:samples\\access_request_david.txt";
-        String arContent = null;
-        try {
-            File file = ResourceUtils.getFile(arFile);
-            arContent = Files.readString(file.toPath());
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw new RuntimeException();
-        }
-        JsonNode arRoot = new ObjectMapper().readTree(arContent);
-        JsonNode objIdNode = arRoot.path("obj").path("id");
-        if (!objIdNode.isTextual()) {
-            throw new RuntimeException();
-        }
-        String objId = objIdNode.asText();
-
-        // query database to retrieve policy hierarchy
-        AuthzMapper mapper = LocalBeanFactory.getBean(AuthzMapper.class);
-        ObjectHierarchyPojo hierarchyPojo = mapper.findHierarchy(objId);
-        String[] hierarchy = hierarchyPojo.getHierarchy().split("/");
-
-        // retrieve policies from database and assemble
-        Map<String, List<List<String>>> assembledPolicyMap = new HashMap<>();
-        for (String policyRef : hierarchy) {
-            PolicyPojo pojo = mapper.findPolicy(policyRef);
-            System.out.printf("Policy Ref: %s%n%s%n%n", pojo.getRef(), pojo.getContent());
-            List<RuleJsonModel> ruleModels = new ObjectMapper().readValue(pojo.getContent(), new TypeReference<>() {
-            });
-            Set<String> localKey = new HashSet<>();
-            for (RuleJsonModel ruleModel : ruleModels) {
-                String key = ruleModel.getKey();
-                if (!localKey.contains(key)) {
-                    assembledPolicyMap.put(key, new ArrayList<>());
-                    localKey.add(key);
-                }
-                assembledPolicyMap.get(key).add(ruleModel.getContent());
+        for (int i = 1; i < 3; i++) {
+            // get and parse the access request
+            String arFile = "classpath:samples\\access_request_alice.txt";
+            String arContent = null;
+            try {
+                File file = ResourceUtils.getFile(arFile);
+                arContent = Files.readString(file.toPath());
+            } catch (IOException e) {
+                e.printStackTrace();
+                throw new RuntimeException();
             }
-        }
-
-        System.out.printf("Final assembled policies:%n%s%n%n", assembledPolicyMap.toString());
-
-        // parse the assembled policy map to rego policy
-        StringBuilder sb = new StringBuilder();
-        sb.append("package authz.policy\n\ndefault PERMIT = false\n\nPERMIT {\n");
-
-        List<String> ruleKeys = new ArrayList<>(assembledPolicyMap.keySet());
-        ruleKeys.sort(Comparator.naturalOrder());
-        for (String key : ruleKeys) {
-            sb.append("\t").append(key).append("\n");
-        }
-        sb.append("}\n\n");
-
-        for (String key : ruleKeys) {
-            List<List<String>> ruleList = assembledPolicyMap.get(key);
-            for (List<String> rule : ruleList) {
-                sb.append(key).append(" {\n");
-                for (String sentence : rule) {
-                    sb.append("\t").append(sentence).append("\n");
-                }
-                sb.append("}\n");
+            JsonNode arRoot = new ObjectMapper().readTree(arContent);
+            JsonNode objIdNode = arRoot.path("obj").path("id");
+            if (!objIdNode.isTextual()) {
+                throw new RuntimeException();
             }
-        }
+            String objId = objIdNode.asText();
 
-        String finalRegoPolicy = sb.toString();
-        System.out.printf("Final rego policy: %n%s%n", finalRegoPolicy);
+            // query database to retrieve policy hierarchy
+            AuthzMapper mapper = LocalBeanFactory.getBean(AuthzMapper.class);
+            ObjectHierarchyPojo hierarchyPojo = mapper.findHierarchy(objId);
+            String[] hierarchy = hierarchyPojo.getHierarchy().split("/");
 
-        OpaEvalRequestBody opaEvalRequestBody = new OpaEvalRequestBody(arContent, finalRegoPolicy);
-        String opaEvalBodyJson = new ObjectMapper().writeValueAsString(opaEvalRequestBody);
+            // retrieve policies from database and assemble
+            Map<String, List<List<String>>> assembledPolicyMap = new HashMap<>();
+            for (String policyRef : hierarchy) {
+                PolicyPojo pojo = mapper.findPolicy(policyRef);
+                System.out.printf("Policy Ref: %s%n%s%n%n", pojo.getRef(), pojo.getContent());
+                List<RuleJsonModel> ruleModels = new ObjectMapper().readValue(pojo.getContent(), new TypeReference<>() {
+                });
+                Set<String> localKey = new HashSet<>();
+                for (RuleJsonModel ruleModel : ruleModels) {
+                    String key = ruleModel.getKey();
+                    if (!localKey.contains(key)) {
+                        assembledPolicyMap.put(key, new ArrayList<>());
+                        localKey.add(key);
+                    }
+                    assembledPolicyMap.get(key).add(ruleModel.getContent());
+                }
+            }
 
-        // send access request and policy to opa server for evaluation
-        RestTemplate restTemplate = new RestTemplate();
+            System.out.printf("Final assembled policies:%n%s%n%n", assembledPolicyMap.toString());
 
-        //you can create and edit header
-        HttpHeaders header = new HttpHeaders();
-        // header.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-        header.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+            // parse the assembled policy map to rego policy
+            StringBuilder sb = new StringBuilder();
+            sb.append("package authz.policy\n\ndefault PERMIT = false\n\nPERMIT {\n");
 
-        HttpEntity<String> requestHttp = new HttpEntity<String>(opaEvalBodyJson, header);
+            List<String> ruleKeys = new ArrayList<>(assembledPolicyMap.keySet());
+            ruleKeys.sort(Comparator.naturalOrder());
+            for (String key : ruleKeys) {
+                sb.append("\t").append(key).append("\n");
+            }
+            sb.append("}\n\n");
+
+            for (String key : ruleKeys) {
+                List<List<String>> ruleList = assembledPolicyMap.get(key);
+                for (List<String> rule : ruleList) {
+                    sb.append(key).append(" {\n");
+                    for (String sentence : rule) {
+                        sb.append("\t").append(sentence).append("\n");
+                    }
+                    sb.append("}\n");
+                }
+            }
+
+            String finalRegoPolicy = sb.toString();
+            System.out.printf("Final rego policy: %n%s%n", finalRegoPolicy);
+
+            OpaEvalRequestBodyOld opaEvalRequestBodyOld = new OpaEvalRequestBodyOld(arContent, finalRegoPolicy);
+            String opaEvalBodyJson = new ObjectMapper().writeValueAsString(opaEvalRequestBodyOld);
+
+            // send access request and policy to opa server for evaluation
+            RestTemplate restTemplate = new RestTemplate();
+
+            //you can create and edit header
+            HttpHeaders header = new HttpHeaders();
+            // header.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+            header.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+
+            HttpEntity<String> requestHttp = new HttpEntity<String>(opaEvalBodyJson, header);
 
 //        System.out.println(requestHttp);
 
-        //After you can create a request
-        ResponseEntity<OpaEvalResponse> response = restTemplate.postForEntity("http://localhost:8081/opa/eval",
-                requestHttp,
-                OpaEvalResponse.class);
+            //After you can create a request
+            ResponseEntity<OpaEvalResponse> response = restTemplate.postForEntity("http://localhost:8081/opa/eval",
+                    requestHttp,
+                    OpaEvalResponse.class);
 
-        System.out.println("returned decision: "+ response.getBody().getDecision());
-
+            System.out.println("returned decision: " + response.getBody().getDecision());
+        }
 
 //        Map<String, Object> arMap = new ObjectMapper().readValue(arContent, new TypeReference<>(){});
 //        if(!arMap.containsKey("sub")){
@@ -214,5 +213,41 @@ class IotabacserverApplicationTests {
 //                throw new RuntimeException();
 //            }
 //        }
+    }
+
+    @Test
+    void testNewBasicEval() throws JsonProcessingException {
+        for (int i = 0; i < 4; i++) {
+            // get and parse the access request
+            String arFile = "classpath:samples\\access_request_alice.txt";
+            String arContent = null;
+            try {
+                File file = ResourceUtils.getFile(arFile);
+                arContent = Files.readString(file.toPath());
+            } catch (IOException e) {
+                e.printStackTrace();
+                throw new RuntimeException();
+            }
+
+            OpaEvalRequestBody opaEvalRequestBody = new OpaEvalRequestBody(arContent);
+            String opaEvalBodyJson = new ObjectMapper().writeValueAsString(opaEvalRequestBody);
+
+            // send access request and policy to opa server for evaluation
+            RestTemplate restTemplate = new RestTemplate();
+
+            //you can create and edit header
+            HttpHeaders header = new HttpHeaders();
+            // header.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+            header.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+
+            HttpEntity<String> requestHttp = new HttpEntity<String>(opaEvalBodyJson, header);
+
+            //After you can create a request
+            ResponseEntity<OpaEvalResponse> response = restTemplate.postForEntity("http://localhost:8081/opa/eval",
+                    requestHttp,
+                    OpaEvalResponse.class);
+
+            System.out.println("returned decision: " + response.getBody().getDecision());
+        }
     }
 }

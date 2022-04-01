@@ -1,0 +1,11 @@
+cache:
+  use_cache: true
+  func_cache_ttl: 43200
+  max_cache_entry: 10000
+datasource:
+  - drive_name: mysql
+    name: abac
+    url: root:123456@tcp(localhost:3306)/abac
+  - drive_name: mysql
+    name: airbnb
+    url: root:123456@tcp(localhost:3306)/airbnb
