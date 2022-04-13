@@ -8,4 +8,6 @@ public class Constants {
     public final static String INVALID_DEV_INFO = "invalid device info";
     public final static String INVALID_DEV_REG_INFO = "invalid device register info";
     public final static String DEV_ALREADY_REG = "device already registered";
+    public final static String INVALID_USER_REG_INFO = "invalid user register info";
+    public final static String USER_ALREADY_REG = "user already registered";
 }

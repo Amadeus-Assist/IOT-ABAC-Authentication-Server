@@ -8,4 +8,8 @@ public interface AuthenticationService {
     boolean deviceExists(String devId);
 
     String registerDevice(String devId, String devType);
+
+    boolean userExists(String username);
+
+    void registerUser(String username, String password, String attrs);
 }

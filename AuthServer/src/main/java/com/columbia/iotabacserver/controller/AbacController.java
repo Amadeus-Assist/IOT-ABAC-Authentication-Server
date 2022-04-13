@@ -1,6 +1,7 @@
 package com.columbia.iotabacserver.controller;
 
 import com.columbia.iotabacserver.pojo.request.DevRegRequest;
+import com.columbia.iotabacserver.pojo.request.UserRegRequest;
 import com.columbia.iotabacserver.pojo.response.DevRegResponse;
 import com.columbia.iotabacserver.service.AuthService;
 import com.columbia.iotabacserver.service.AuthenticationService;
@@ -41,7 +42,7 @@ public class AbacController {
         }
 
         if (!StringUtils.hasText(request.getObjDevId()) || !StringUtils.hasText(request.getObjToken())
-        || !authenticationService.deviceAuthenticateCheck(request.getObjDevId(), request.getObjToken())){
+                || !authenticationService.deviceAuthenticateCheck(request.getObjDevId(), request.getObjToken())) {
             logger.info("invalid device authentication info");
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Constants.INVALID_DEV_INFO);
         }
@@ -61,18 +62,30 @@ public class AbacController {
     @PostMapping(value = "/authz/register/dev", produces = MediaType.APPLICATION_JSON_VALUE, consumes =
             MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public DevRegResponse postDevRegister(@RequestBody DevRegRequest request){
-        if (!StringUtils.hasText(request.getDevId()) || !StringUtils.hasText(request.getDevType())){
+    public DevRegResponse postDevRegister(@RequestBody DevRegRequest request) {
+        if (!StringUtils.hasText(request.getDevId()) || !StringUtils.hasText(request.getDevType())) {
             logger.info("invalid device register request");
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Constants.INVALID_DEV_REG_INFO);
         }
 
-        if (authenticationService.deviceExists(request.getDevId())){
+        if (authenticationService.deviceExists(request.getDevId())) {
             logger.info("device already registered");
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Constants.DEV_ALREADY_REG);
         }
 
         String token = authenticationService.registerDevice(request.getDevId(), request.getDevType());
         return new DevRegResponse(token);
+    }
+
+    @PostMapping(value = "authz/register/user", produces = MediaType.APPLICATION_JSON_VALUE, consumes =
+            MediaType.APPLICATION_JSON_VALUE)
+    public void postUserRegister(@RequestBody UserRegRequest request) {
+        if (!StringUtils.hasText(request.getUsername()) || !StringUtils.hasText(request.getPassword())
+                || !StringUtils.hasText(request.getAttrs())) {
+            logger.info("invalid user register request");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Constants.INVALID_USER_REG_INFO);
+        }
+
+        authenticationService.registerUser(request.getUsername(), request.getPassword(), request.getAttrs());
     }
 }

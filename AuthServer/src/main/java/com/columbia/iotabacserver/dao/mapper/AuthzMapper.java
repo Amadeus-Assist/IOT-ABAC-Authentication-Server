@@ -13,8 +13,8 @@ public interface AuthzMapper {
     @Options(useGeneratedKeys = true)
     void insertPolicy(PolicyPojo pojo);
 
-    @Update("UPDATE rego_policy_repository SET content=#{com.columbia.iotabacserver.pojo.content} WHERE ref=#{com.columbia.iotabacserver.pojo.ref}")
-    void updatePolicy(@Param("com/columbia/iotabacserver/pojo") PolicyPojo pojo);
+    @Update("UPDATE rego_policy_repository SET content=#{pojo.content} WHERE ref=#{pojo.ref}")
+    void updatePolicy(@Param("pojo") PolicyPojo pojo);
 
     @Select("SELECT obj_id AS objId, action, hierarchy FROM object_action_policy_hierarchy WHERE obj_id=#{objId} " +
             "AND action=#{action} LIMIT 1")
@@ -24,19 +24,19 @@ public interface AuthzMapper {
     @Options(useGeneratedKeys = true)
     void insertObjectHierarchy(ObjectHierarchyPojo pojo);
 
-    @Update("UPDATE object_action_policy_hierarchy SET hierarchy=#{com.columbia.iotabacserver.pojo.hierarchy} WHERE obj_id=#{com.columbia.iotabacserver.pojo.objId} AND " +
-            "action=#{com.columbia.iotabacserver.pojo.action}")
+    @Update("UPDATE object_action_policy_hierarchy SET hierarchy=#{pojo.hierarchy} WHERE obj_id=#{pojo.objId} AND " +
+            "action=#{pojo.action}")
     void updateObjectHierarchy(ObjectHierarchyPojo pojo);
 
     @Select("SELECT user_id AS userId, attrs FROM user_attrs WHERE user_id=#{userId} LIMIT 1")
     UserAttrsPojo findUserAttrs(String userId);
 
-    @Insert("INSERT INTO user_attrs(user_id, attrs) VALUES(#{userId}, #{attrs})")
+    @Insert("INSERT INTO user_attrs(user_id, pwd, attrs) VALUES(#{userId}, #{password}, #{attrs})")
     @Options(useGeneratedKeys = true)
     void insertUserAttrs(UserAttrsPojo pojo);
 
-    @Update("UPDATE user_attrs SET attrs=#{com.columbia.iotabacserver.pojo.attrs} WHERE user_id=#{com.columbia.iotabacserver.pojo.userId}")
-    void updateUserAttrs(@Param("com/columbia/iotabacserver/pojo") UserAttrsPojo pojo);
+    @Update("UPDATE user_attrs SET attrs=#{pojo.attrs} WHERE user_id=#{pojo.userId}")
+    void updateUserAttrs(@Param("pojo") UserAttrsPojo pojo);
 
     @Select("SELECT user_id AS username, pwd as password FROM user_attrs WHERE user_id=#{userId} LIMIT 1")
     UserCheckPojo findUserCheckInfo(String userId);

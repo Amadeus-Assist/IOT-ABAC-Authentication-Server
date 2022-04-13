@@ -2,6 +2,7 @@ package com.columbia.iotabacserver.service.impl;
 
 import com.columbia.iotabacserver.dao.mapper.AuthzMapper;
 import com.columbia.iotabacserver.dao.model.DevCheckPojo;
+import com.columbia.iotabacserver.dao.model.UserAttrsPojo;
 import com.columbia.iotabacserver.dao.model.UserCheckPojo;
 import com.columbia.iotabacserver.service.AuthenticationService;
 import com.columbia.iotabacserver.utils.Utils;
@@ -44,4 +45,17 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         mapper.insertDevCheckInfo(pojo);
         return token;
     }
+
+    @Override
+    public boolean userExists(String username) {
+        UserCheckPojo pojo = mapper.findUserCheckInfo(username);
+        return !ObjectUtils.isEmpty(pojo);
+    }
+
+    @Override
+    public void registerUser(String username, String password, String attrs) {
+        mapper.insertUserAttrs(new UserAttrsPojo(username, password, attrs));
+    }
+
+
 }
