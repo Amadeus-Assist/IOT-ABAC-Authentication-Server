@@ -1,7 +1,11 @@
-cache:
-  use_cache: true
-  func_cache_ttl: 43200
-  max_cache_entry: 10000
+func_cache:
+  func_use_cache: true
+  func_cache_ttl: 43203
+  func_max_cache_entry: 10000
+hie_cache:
+  hie_use_cache: true
+  hie_cache_ttl: 43202
+  hie_max_cache_entry: 10000
 datasource:
   - drive_name: mysql
     name: abac

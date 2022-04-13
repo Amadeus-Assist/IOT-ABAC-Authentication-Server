@@ -11,7 +11,6 @@ import java.io.Serializable;
 @Data
 @ToString
 public class PolicyPojo implements Serializable {
-
     private static final long serialVersionUID = -2746844710915859221L;
 
     String ref;

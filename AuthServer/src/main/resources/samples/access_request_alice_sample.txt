@@ -1,0 +1,11 @@
+{
+    "sub": {
+        "id": "iphone12_3952",
+        "owner_id": "alice_5832"
+    },
+    "obj": {
+        "id": "door_sample",
+        "owner_id": "bob_6842"
+    },
+    "action": "open"
+}

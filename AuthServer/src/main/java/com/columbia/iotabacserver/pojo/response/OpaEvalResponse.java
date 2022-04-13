@@ -1,4 +1,4 @@
-package com.columbia.iotabacserver.rest;
+package com.columbia.iotabacserver.pojo.response;
 
 import lombok.Getter;
 import lombok.Setter;

@@ -29,7 +29,7 @@ func PrepareRego(context *OPAServerContext) {
 		start := time.Now().UnixMicro()
 		var funcArgs = []*ast.Term{tempTerm, paramsTerm}
 		cacheKey := buildCacheKey("sql_query", funcArgs)
-		if context.UseCache {
+		if context.FuncUseCache {
 			cacheRes, prs := checkCache(context.FuncCache, cacheKey)
 			if prs {
 				return &cacheRes, nil
@@ -57,7 +57,7 @@ func PrepareRego(context *OPAServerContext) {
 		}
 
 		res, err := sqlConn.Query(string(temp), paramsSlice...)
-		fmt.Printf("query temp: %v, params: %v\n", temp, paramsSlice)
+		//fmt.Printf("query temp: %v, params: %v\n", temp, paramsSlice)
 
 		if err != nil {
 			fmt.Printf("Unable to execute sql_query, template: %v, params: %v, err: %v\n",
@@ -84,7 +84,7 @@ func PrepareRego(context *OPAServerContext) {
 			return nil, nil
 		}
 
-		fmt.Printf("result: %v\n", attributes.attrs)
+		//fmt.Printf("result: %v\n", attributes.attrs)
 
 		astTerm, err := ast.ParseTerm(attributes.attrs)
 
@@ -92,13 +92,12 @@ func PrepareRego(context *OPAServerContext) {
 			fmt.Printf("Parse term error, source: %v, err: %v\n", attributes.attrs, err)
 			return nil, nil
 		}
-		fmt.Printf("res term: %v\n", astTerm)
+		//fmt.Printf("res term: %v\n", astTerm)
 
-		if context.UseCache {
+		if context.FuncUseCache {
 			err = pushToCache(context.FuncCache, cacheKey, astTerm, context.FuncCacheTTL)
 			if err != nil {
 				fmt.Printf("push to cache error: %v\n", err)
-				return nil, nil
 			}
 		}
 
@@ -113,7 +112,7 @@ func PrepareRego(context *OPAServerContext) {
 			context.FuncTimeCounter[funcKey] = newElapse
 		}
 
-		fmt.Printf("counter:\n%v\n", context.FuncTimeCounter)
+		fmt.Printf("counter:\n%v\n\n", context.FuncTimeCounter)
 
 		return astTerm, nil
 	})
@@ -137,7 +136,7 @@ func PrepareRego(context *OPAServerContext) {
 		var funcArgs = []*ast.Term{paramsTerm}
 		cacheKey := buildCacheKey("api_get_obj_term", funcArgs)
 
-		if context.UseCache {
+		if context.FuncUseCache {
 			cacheRes, prs := checkCache(context.FuncCache, cacheKey)
 			if prs {
 				return &cacheRes, nil
@@ -172,20 +171,19 @@ func PrepareRego(context *OPAServerContext) {
 
 		responseContent := string(body)
 
-		fmt.Printf("result: %v\n", responseContent)
+		//fmt.Printf("result: %v\n", responseContent)
 
 		astTerm, err := ast.ParseTerm(responseContent)
 		if err != nil {
 			fmt.Printf("Parse term error, source: %v, err: %v\n", responseContent, err)
 			return nil, nil
 		}
-		fmt.Printf("res term: %v\n", astTerm)
+		//fmt.Printf("res term: %v\n", astTerm)
 
-		if context.UseCache {
+		if context.FuncUseCache {
 			err = pushToCache(context.FuncCache, cacheKey, astTerm, context.FuncCacheTTL)
 			if err != nil {
 				fmt.Printf("push to cache error: %v\n", err)
-				return nil, nil
 			}
 		}
 
@@ -200,7 +198,7 @@ func PrepareRego(context *OPAServerContext) {
 			context.FuncTimeCounter[funcKey] = newElapse
 		}
 
-		fmt.Printf("counter:\n%v\n", context.FuncTimeCounter)
+		fmt.Printf("counter:\n%v\n\n", context.FuncTimeCounter)
 
 		return astTerm, nil
 	})

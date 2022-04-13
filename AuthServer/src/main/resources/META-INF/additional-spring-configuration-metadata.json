@@ -1,0 +1,8 @@
+{
+  "properties": [
+    {
+      "name": "opa_eval_url",
+      "type": "java.lang.String",
+      "description": "Description for opa_eval_url."
+  }
+] }

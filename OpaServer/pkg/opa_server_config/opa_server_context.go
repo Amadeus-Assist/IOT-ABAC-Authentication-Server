@@ -6,12 +6,16 @@ import (
 )
 
 type OPAServerContext struct {
-	SqlDB           map[string]*sql.DB
-	UseCache        bool
-	FuncCache       gcache.Cache
-	FuncCacheTTL    int64
-	MaxCacheEntry   int
-	ProjectRootPath string
-	ConfigFilePath  string
-	FuncTimeCounter map[string]int64
+	SqlDB             map[string]*sql.DB
+	FuncUseCache      bool
+	FuncCache         gcache.Cache
+	FuncCacheTTL      int64
+	MaxFuncCacheEntry int
+	ProjectRootPath   string
+	ConfigFilePath    string
+	FuncTimeCounter   map[string]int64
+	HieUseCache       bool
+	HierarchyCache    gcache.Cache
+	MaxHieCacheEntry  int
+	HieCacheTTL       int64
 }

@@ -13,6 +13,7 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"time"
 )
 
 type queriedHierarchy struct {
@@ -106,33 +107,69 @@ func (s *Server) preprocessEvalRequest(evalRequest *api.OpaEvalRequest) (string,
 		return "", nil, errors.New("invalid access request format")
 	}
 	objId := objIdInterface.(string)
-	hierarchies, err := s.queryHierarchy(objId)
+
+	actionInterface, prs := inputMap[utils.ACTION]
+	if !prs {
+		return "", nil, errors.New("invalid access request format")
+	}
+	action := actionInterface.(string)
+
+	hierarchy, err := s.queryHierarchy(objId, action)
 	if err != nil {
 		return "", nil, errors.New("unable to get obj hierarchy")
 	}
-	finalRegoPolicy, err := s.assemblePolicy(hierarchies)
-	if err != nil {
-		return "", nil, errors.New("unable to assemble final rego policy")
+
+	var finalRegoPolicy string
+	getStoredPolicySucc := false
+	//check cache first
+	if s.context.HieUseCache {
+		value, err := s.context.HierarchyCache.GetIFPresent(hierarchy)
+		if err == nil {
+			storedRegoPolicy, ok := value.(string)
+			if ok {
+				finalRegoPolicy = storedRegoPolicy
+				fmt.Printf("Hierarchy hit cache!\n")
+				getStoredPolicySucc = true
+			}
+		}
 	}
+
+	if !getStoredPolicySucc {
+		hierarchies := strings.Split(hierarchy, utils.HIERARCHY_SEP)
+
+		assembledPolicy, err := s.assemblePolicy(hierarchies)
+		if err != nil {
+			return "", nil, errors.New("unable to assemble final rego policy")
+		}
+		finalRegoPolicy = assembledPolicy
+		if s.context.HieUseCache {
+			err = s.context.HierarchyCache.SetWithExpire(hierarchy, assembledPolicy,
+				time.Duration(s.context.HieCacheTTL)*time.Second)
+			if err != nil {
+				fmt.Printf("error put hierarchy cache, hierarchy: %v, error: %v\n", hierarchy, err)
+			}
+		}
+	}
+
 	return finalRegoPolicy, inputMap, nil
 }
 
-func (s *Server) queryHierarchy(objId string) ([]string, error) {
+func (s *Server) queryHierarchy(objId string, action string) (string, error) {
 	sqlConn, prs := s.context.SqlDB[utils.LOCAL_BASIC_DS]
 	if !prs {
 		fmt.Printf("unable to find corresponding datasource: %v\n", utils.LOCAL_BASIC_DS)
-		return nil, errors.New("unable to query hierarchy")
+		return "", errors.New("unable to query hierarchy")
 	}
 
 	hierarchyTemp := strings.Replace(utils.HIERARCHY_QUERY_TEMP, utils.TABLENAME, utils.HIERARCHY_TABLE, 1)
 
-	res, err := sqlConn.Query(hierarchyTemp, objId)
-	fmt.Printf("query temp: %v, params: %v\n", hierarchyTemp, objId)
+	res, err := sqlConn.Query(hierarchyTemp, objId, action)
+	//fmt.Printf("query temp: %v, params: %v\n", hierarchyTemp, objId)
 
 	if err != nil {
 		fmt.Printf("Unable to execute sql_query, template: %v, params: %v, err: %v\n",
 			hierarchyTemp, objId, err)
-		return nil, errors.New("unable to query hierarchy")
+		return "", errors.New("unable to query hierarchy")
 	}
 
 	defer func(res *sql.Rows) {
@@ -147,21 +184,19 @@ func (s *Server) queryHierarchy(objId string) ([]string, error) {
 	if res.Next() {
 		if err := res.Scan(&hierarchyRes.hierarchy); err != nil {
 			fmt.Printf("scan err: %v\n", err)
-			return nil, errors.New("unable to query hierarchy")
+			return "", errors.New("unable to query hierarchy")
 		}
 	} else {
 		fmt.Printf("empty query result\n")
-		return nil, errors.New("unable to query hierarchy")
+		return "", errors.New("unable to query hierarchy")
 	}
 
 	if hierarchyRes.hierarchy == "" {
 		fmt.Printf("empty queried hierarchy\n")
-		return nil, errors.New("unable to query hierarchy")
+		return "", errors.New("unable to query hierarchy")
 	}
 
-	hierarchies := strings.Split(hierarchyRes.hierarchy, utils.HIERARCHY_SEP)
-
-	return hierarchies, nil
+	return hierarchyRes.hierarchy, nil
 }
 
 func (s *Server) assemblePolicy(hierarchies []string) (string, error) {
@@ -181,7 +216,7 @@ func (s *Server) assemblePolicy(hierarchies []string) (string, error) {
 	policyQueryTemp := strings.Replace(utils.POLICY_QUERY_TEMP, utils.TABLENAME, utils.POLICY_REPOSITORY_TABLE, 1)
 	for _, hie := range hierarchies {
 		res, err := sqlConn.Query(policyQueryTemp, hie)
-		fmt.Printf("query temp: %v, params: %v\n", policyQueryTemp, hie)
+		//fmt.Printf("query temp: %v, params: %v\n", policyQueryTemp, hie)
 
 		if err != nil {
 			fmt.Printf("Unable to execute sql_query, template: %v, params: %v, err: %v\n",
@@ -268,7 +303,7 @@ PERMIT{
 		}
 	}
 
-	fmt.Printf("final policy:\n%v\n", sb.String())
+	fmt.Printf("final policy:\n%v\n\n", sb.String())
 
 	return sb.String()
 }
@@ -294,6 +329,7 @@ func (s *Server) sortPolicyKey(policyMap map[string][]*ruleWithCost) []string {
 		costJ, _ := ruleCostMap[keys[j]]
 		return costI < costJ
 	})
+	fmt.Printf("rule cost table:\n%v\n\n", ruleCostMap)
 	return keys
 }
 
@@ -309,7 +345,7 @@ func (s *Server) computeRuleWithCost(rule []string) *ruleWithCost {
 			}
 		} else if match, err := regexp.MatchString(utils.API_GET_OBJ_TERM_REGEX, sentence); err == nil && match {
 			urlPrefix := utils.GetFirstTermAfterQuote(sentence, "api_get_obj_term(")
-			funcKey := "sql_query(" + urlPrefix + ")"
+			funcKey := "api_get_obj_term(" + urlPrefix + ")"
 			funcCost, prs := s.context.FuncTimeCounter[funcKey]
 			if prs {
 				cost = utils.Add(cost, funcCost)

@@ -11,9 +11,9 @@ import java.io.Serializable;
 @Data
 @ToString
 public class ObjectHierarchyPojo implements Serializable {
-
     private static final long serialVersionUID = -2834137027231984102L;
 
     String objId;
+    String action;
     String hierarchy;
 }

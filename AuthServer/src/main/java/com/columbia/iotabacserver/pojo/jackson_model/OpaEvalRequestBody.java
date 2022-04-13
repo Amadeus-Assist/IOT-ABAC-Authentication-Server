@@ -1,4 +1,4 @@
-package com.columbia.iotabacserver.jackson_model;
+package com.columbia.iotabacserver.pojo.jackson_model;
 
 import lombok.*;
 

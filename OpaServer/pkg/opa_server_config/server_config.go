@@ -24,11 +24,16 @@ func PrepareServerSetting(context *OPAServerContext) error {
 }
 
 type ApplicationConfig struct {
-	Cache struct {
-		UseCache      bool  `yaml:"use_cache"`
-		FuncCacheTTL  int64 `yaml:"func_cache_ttl"`
-		MaxCacheEntry int   `yaml:"max_cache_entry"`
-	} `yaml:"cache"`
+	FuncCache struct {
+		FuncUseCache      bool  `yaml:"func_use_cache"`
+		FuncCacheTTL      int64 `yaml:"func_cache_ttl"`
+		FuncMaxCacheEntry int   `yaml:"func_max_cache_entry"`
+	} `yaml:"func_cache"`
+	HieCache struct{
+		HieUseCache      bool  `yaml:"hie_use_cache"`
+		HieCacheTTL      int64 `yaml:"hie_cache_ttl"`
+		HieMaxCacheEntry int   `yaml:"hie_max_cache_entry"`
+	} `yaml:"hie_cache"`
 	Datasource []struct {
 		DriveName string `yaml:"drive_name"`
 		Name      string `yaml:"name"`
@@ -52,14 +57,23 @@ func parseConfig(context *OPAServerContext) error {
 		fmt.Printf("fail to parse config file: %v\n", configFilePath)
 		return err
 	}
-	fmt.Printf("config: %v\n", applicationConfig)
-	if applicationConfig.Cache.UseCache {
-		context.UseCache = true
-		context.FuncCacheTTL = applicationConfig.Cache.FuncCacheTTL
-		context.MaxCacheEntry = applicationConfig.Cache.MaxCacheEntry
-		context.FuncCache = gcache.New(context.MaxCacheEntry).LFU().Build()
+	//fmt.Printf("config: %v\n", applicationConfig)
+	if applicationConfig.FuncCache.FuncUseCache {
+		context.FuncUseCache = true
+		context.FuncCacheTTL = applicationConfig.FuncCache.FuncCacheTTL
+		context.MaxFuncCacheEntry = applicationConfig.FuncCache.FuncMaxCacheEntry
+		context.FuncCache = gcache.New(context.MaxFuncCacheEntry).LFU().Build()
 	} else {
-		context.UseCache = false
+		context.FuncUseCache = false
+	}
+
+	if applicationConfig.HieCache.HieUseCache {
+		context.HieUseCache = true
+		context.HieCacheTTL = applicationConfig.HieCache.HieCacheTTL
+		context.MaxHieCacheEntry = applicationConfig.HieCache.HieMaxCacheEntry
+		context.HierarchyCache = gcache.New(context.MaxHieCacheEntry).LFU().Build()
+	}else {
+		context.HieUseCache = false
 	}
 
 	if context.SqlDB == nil {
@@ -77,6 +91,9 @@ func parseConfig(context *OPAServerContext) error {
 			context.SqlDB[dataConfig.Name] = conn
 		}
 	}
+
+	//fmt.Printf("complete context: %v\n", context)
+
 	return nil
 }
 

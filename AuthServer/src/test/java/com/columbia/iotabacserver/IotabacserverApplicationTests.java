@@ -1,13 +1,15 @@
 package com.columbia.iotabacserver;
 
 import com.columbia.iotabacserver.dao.mapper.AuthzMapper;
+import com.columbia.iotabacserver.dao.model.DevCheckPojo;
 import com.columbia.iotabacserver.dao.model.ObjectHierarchyPojo;
 import com.columbia.iotabacserver.dao.model.PolicyPojo;
 import com.columbia.iotabacserver.dao.model.UserAttrsPojo;
-import com.columbia.iotabacserver.jackson_model.OpaEvalRequestBody;
-import com.columbia.iotabacserver.jackson_model.OpaEvalRequestBodyOld;
-import com.columbia.iotabacserver.jackson_model.RuleJsonModel;
-import com.columbia.iotabacserver.rest.OpaEvalResponse;
+import com.columbia.iotabacserver.pojo.jackson_model.OpaEvalRequestBody;
+import com.columbia.iotabacserver.pojo.jackson_model.OpaEvalRequestBodyOld;
+import com.columbia.iotabacserver.pojo.jackson_model.RuleJsonModel;
+import com.columbia.iotabacserver.pojo.response.OpaEvalResponse;
+import com.columbia.iotabacserver.utils.Utils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -37,10 +39,10 @@ class IotabacserverApplicationTests {
     @Test
     void insertPolicy() {
         AuthzMapper mapper = LocalBeanFactory.getBean(AuthzMapper.class);
-        String policyRef = "door_columbia_seas_office";
+        String policyRef = "door_sample";
         String contents = null;
         try {
-            File file = ResourceUtils.getFile("classpath:samples\\door_columbia_seas_office.txt");
+            File file = ResourceUtils.getFile("classpath:samples\\door_sample.txt");
             contents = Files.readString(file.toPath());
         } catch (IOException e) {
             e.printStackTrace();
@@ -52,10 +54,10 @@ class IotabacserverApplicationTests {
     @Test
     void updatePolicy() {
         AuthzMapper mapper = LocalBeanFactory.getBean(AuthzMapper.class);
-        String policyRef = "door_columbia";
+        String policyRef = "door_sample";
         String contents = null;
         try {
-            File file = ResourceUtils.getFile("classpath:samples\\door_columbia.txt");
+            File file = ResourceUtils.getFile("classpath:samples\\door_sample.txt");
             contents = Files.readString(file.toPath());
         } catch (IOException e) {
             e.printStackTrace();
@@ -67,9 +69,10 @@ class IotabacserverApplicationTests {
     @Test
     void insertHierarchy() {
         AuthzMapper mapper = LocalBeanFactory.getBean(AuthzMapper.class);
-        String objId = "door_columbia";
-        String hierarchy = "door_columbia/door_columbia";
-        ObjectHierarchyPojo pojo = new ObjectHierarchyPojo(objId, hierarchy);
+        String objId = "door_sample";
+        String action = "open";
+        String hierarchy = "door_sample";
+        ObjectHierarchyPojo pojo = new ObjectHierarchyPojo(objId, action, hierarchy);
         mapper.insertObjectHierarchy(pojo);
     }
 
@@ -123,9 +126,15 @@ class IotabacserverApplicationTests {
             }
             String objId = objIdNode.asText();
 
+            JsonNode actionNode = arRoot.path("action");
+            if (!actionNode.isTextual()) {
+                throw new RuntimeException();
+            }
+            String action = actionNode.asText();
+
             // query database to retrieve policy hierarchy
             AuthzMapper mapper = LocalBeanFactory.getBean(AuthzMapper.class);
-            ObjectHierarchyPojo hierarchyPojo = mapper.findHierarchy(objId);
+            ObjectHierarchyPojo hierarchyPojo = mapper.findHierarchy(objId, action);
             String[] hierarchy = hierarchyPojo.getHierarchy().split("/");
 
             // retrieve policies from database and assemble
@@ -217,7 +226,7 @@ class IotabacserverApplicationTests {
 
     @Test
     void testNewBasicEval() throws JsonProcessingException {
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < 2; i++) {
             // get and parse the access request
             String arFile = "classpath:samples\\access_request_alice.txt";
             String arContent = null;
@@ -249,5 +258,17 @@ class IotabacserverApplicationTests {
 
             System.out.println("returned decision: " + response.getBody().getDecision());
         }
+    }
+
+    @Test
+    void testMybatis(){
+        AuthzMapper mapper = LocalBeanFactory.getBean(AuthzMapper.class);
+        DevCheckPojo pojo = mapper.findDevCheckInfo("123");
+        System.out.println("pojo: "+pojo);
+    }
+
+    @Test
+    void testGenerateToken(){
+        System.out.println(Utils.generateNewToken());
     }
 }

@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"fmt"
 	"math"
 	"strings"
 )
@@ -15,7 +14,7 @@ func Add(a int64, b int64) int64 {
 
 func GetFirstTermAfterQuote(raw string, sign string) string {
 	subStr := raw[strings.Index(raw, sign)+len(sign):]
-	fmt.Printf("subStr: %v\n", subStr)
+	//fmt.Printf("subStr: %v\n", subStr)
 	firstQuote := strings.Index(subStr, QUOTE)
 	subStr2 := subStr[firstQuote+1:]
 	secondQuote := strings.Index(subStr2, QUOTE)
