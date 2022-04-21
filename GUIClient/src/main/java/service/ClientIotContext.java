@@ -6,6 +6,7 @@ public class ClientIotContext {
     private CloseableHttpClient client;
     private String devId;
     private String token;
+    private String actionsStr;
 
     public CloseableHttpClient getClient() {
         return client;
@@ -29,5 +30,13 @@ public class ClientIotContext {
 
     public void setToken(String token) {
         this.token = token;
+    }
+
+    public String getActionsStr() {
+        return actionsStr;
+    }
+
+    public void setActionsStr(String actionsStr) {
+        this.actionsStr = actionsStr;
     }
 }

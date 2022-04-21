@@ -1,10 +1,10 @@
 package gui;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
-import service.ClientContext;
 import service.ClientIotContext;
 import service.ClientService;
 import utils.Constants;
@@ -20,6 +20,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.util.Locale;
+import java.util.Map;
 
 public class TestIotClient {
     private final JFrame mainFrame;
@@ -33,7 +34,8 @@ public class TestIotClient {
     private JLabel titleLabel;
     private JScrollPane loggerScrollPane;
     private JTextPane loggerTextPane;
-    private JList list1;
+    private JList<String> actionsList;
+    private final DefaultListModel<String> actionsListModel;
     private JButton queryActionsButton;
     private final ClientIotContext context;
     private TestIotClient me;
@@ -43,6 +45,7 @@ public class TestIotClient {
         this.context = context;
         this.mainFrame = new JFrame("IoT Client");
         this.isRunning = false;
+        this.actionsListModel = new DefaultListModel<>();
     }
 
     public JFrame getMainFrame() {
@@ -67,6 +70,7 @@ public class TestIotClient {
         this.me = this;
         this.loggerTextPane.setEditable(false);
         this.queryActionsButton.setEnabled(false);
+        this.actionsList.setModel(this.actionsListModel);
 
         this.mainFrame.addWindowListener(new WindowAdapter() {
             @Override
@@ -146,11 +150,70 @@ public class TestIotClient {
                     devIdTextField.setEnabled(true);
                     tokenTextField.setEnabled(true);
                     queryActionsButton.setEnabled(false);
+                    actionsListModel.clear();
                     isRunning = false;
                     titleLabel.setText("Welcome to the Authorization Service");
                 }
             }
 
+        });
+
+        queryActionsButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                String body;
+                try {
+                    body = ClientService.generateActionQueryBody(context.getDevId(), context.getToken());
+                } catch (JsonProcessingException jsonProcessingException) {
+                    Utils.appendToPane(loggerTextPane, "err: JsonProcessingException\n", Color.red);
+                    return;
+                }
+                assert Utils.hasText(body);
+                Utils.appendToPane(loggerTextPane, "request sent, body:\n" + body + "\n", Color.black);
+                CloseableHttpResponse response;
+                try {
+                    response = ClientService.sendHttpPostRequest(context.getClient(),
+                            Constants.DEV_ACT_QUERY_URL, body);
+                } catch (IOException ioException) {
+                    Utils.appendToPane(loggerTextPane, "err: send login info error\n", Color.red);
+                    return;
+                }
+                assert response != null;
+                String responseBodyStr;
+                try {
+                    responseBodyStr = EntityUtils.toString(response.getEntity(), "UTF-8");
+                } catch (IOException ioException) {
+                    Utils.appendToPane(loggerTextPane, "err: read response body exception\n", Color.red);
+                    return;
+                }
+                assert Utils.hasText(responseBodyStr);
+                if (response.getStatusLine().getStatusCode() == 200) {
+                    Utils.appendToPane(loggerTextPane, "returned body:\n" + responseBodyStr + "\n", Color.black);
+                    try {
+                        Map<String, String> respMap = new ObjectMapper().readValue(responseBodyStr, Map.class);
+                        if (!respMap.containsKey("actions")) {
+                            Utils.appendToPane(loggerTextPane, "bad response body, no actions\n",
+                                    Color.red);
+                            return;
+                        }
+                        String actionsStr = respMap.get("actions");
+                        if (Utils.hasText(actionsStr) && (!Utils.hasText(context.getActionsStr()) || !actionsStr.equals(context.getActionsStr()))) {
+                            actionsListModel.clear();
+                            String[] actions = actionsStr.split("/");
+                            for (String act : actions) {
+                                actionsListModel.addElement(act);
+                            }
+                        }
+                    } catch (JsonProcessingException jsonProcessingException) {
+                        Utils.appendToPane(loggerTextPane, "error parse returned body\n",
+                                Color.red);
+                        return;
+                    }
+                } else {
+                    Utils.appendToPane(loggerTextPane, "query failed, returned body\n" + responseBodyStr + "\n",
+                            Color.red);
+                }
+            }
         });
     }
 
@@ -266,8 +329,9 @@ public class TestIotClient {
                 com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER,
                 com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH,
                 com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
-        list1 = new JList();
-        scrollPane1.setViewportView(list1);
+        actionsList = new JList();
+        actionsList.setSelectionMode(0);
+        scrollPane1.setViewportView(actionsList);
         queryActionsButton = new JButton();
         queryActionsButton.setText("query actions");
         mainPanel.add(queryActionsButton, new com.intellij.uiDesigner.core.GridConstraints(5, 6, 1, 1,
@@ -306,4 +370,5 @@ public class TestIotClient {
     public JComponent $$$getRootComponent$$$() {
         return mainPanel;
     }
+
 }

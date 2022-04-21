@@ -42,6 +42,13 @@ public class ClientService {
         return new ObjectMapper().writeValueAsString(map);
     }
 
+    public static String generateActionQueryBody(String devId, String token) throws JsonProcessingException {
+        Map<String, String> map = new HashMap<>();
+        map.put("device_id", devId);
+        map.put("token", token);
+        return new ObjectMapper().writeValueAsString(map);
+    }
+
     public static CloseableHttpResponse sendHttpPostRequest(CloseableHttpClient client, String url, String body) throws IOException {
         HttpPost post = new HttpPost(url);
         StringEntity entity = new StringEntity(body);

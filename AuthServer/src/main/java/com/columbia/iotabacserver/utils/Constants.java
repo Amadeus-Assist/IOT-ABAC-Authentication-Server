@@ -10,6 +10,6 @@ public class Constants {
     public final static String DEV_ALREADY_REG = "device already registered";
     public final static String INVALID_USER_REG_INFO = "invalid user register info";
     public final static String USER_ALREADY_REG = "user already registered";
-    public final static String INVALID_USER_LOGIN = "invalid user login info";
-    public final static String INVALID_DEV_LOGIN = "invalid device login info";
+    public final static String INVALID_USER_AUTHENTICATION = "invalid user authentication info";
+    public final static String INVALID_DEV_AUTHENTICATION = "invalid device authentication info";
 }

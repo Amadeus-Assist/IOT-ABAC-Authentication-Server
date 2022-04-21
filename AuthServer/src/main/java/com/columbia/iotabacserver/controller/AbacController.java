@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.lang.NonNull;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import com.columbia.iotabacserver.pojo.response.AuthResponse;
@@ -81,7 +80,7 @@ public class AbacController {
         if (!StringUtils.hasText(request.getDevId()) || !StringUtils.hasText(request.getToken())
                 || !authenticationService.deviceAuthenticateCheck(request.getDevId(), request.getToken())) {
             logger.info("invalid device login request");
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Constants.INVALID_DEV_LOGIN);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Constants.INVALID_DEV_AUTHENTICATION);
         }
     }
 
@@ -108,13 +107,20 @@ public class AbacController {
         if (!StringUtils.hasText(request.getUsername()) || !StringUtils.hasText(request.getPassword())
         || !authenticationService.userAuthenticateCheck(request.getUsername(), request.getPassword())) {
             logger.info("invalid user login request");
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Constants.INVALID_USER_LOGIN);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Constants.INVALID_USER_AUTHENTICATION);
         }
     }
 
-    @GetMapping(value = "authz/query-actions/{devId}")
-    public QueryActionsResponse getDeviceActions(@NonNull @PathVariable("devId") String devId) {
-        String actions = authenticationService.queryDevActions(devId);
+    @PostMapping(value = "authz/query-actions/dev", produces = MediaType.APPLICATION_JSON_VALUE, consumes =
+            MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public QueryActionsResponse getDeviceActions(@RequestBody QueryActionsRequest request) {
+        if (!StringUtils.hasText(request.getDevId()) || !StringUtils.hasText(request.getToken())
+                || !authenticationService.deviceAuthenticateCheck(request.getDevId(), request.getToken())) {
+            logger.info("invalid device actions query request");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Constants.INVALID_DEV_AUTHENTICATION);
+        }
+        String actions = authenticationService.queryDevActions(request.getDevId());
         return new QueryActionsResponse(actions);
     }
 
