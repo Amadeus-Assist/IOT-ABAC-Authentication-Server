@@ -1,6 +1,7 @@
 package com.columbia.iotabacserver.service.impl;
 
 import com.columbia.iotabacserver.dao.mapper.AuthzMapper;
+import com.columbia.iotabacserver.dao.model.DevActionsPojo;
 import com.columbia.iotabacserver.dao.model.DevCheckPojo;
 import com.columbia.iotabacserver.dao.model.UserAttrsPojo;
 import com.columbia.iotabacserver.dao.model.UserCheckPojo;
@@ -10,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 
@@ -55,6 +57,15 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Override
     public void registerUser(String username, String password, String attrs) {
         mapper.insertUserAttrs(new UserAttrsPojo(username, password, attrs));
+    }
+
+    @Override
+    public String queryDevActions(String devId) {
+        DevActionsPojo pojo = mapper.findDevActions(devId);
+        if (ObjectUtils.isEmpty(pojo)) {
+            return "";
+        }
+        return StringUtils.hasText(pojo.getActions()) ? pojo.getActions() : "";
     }
 
 

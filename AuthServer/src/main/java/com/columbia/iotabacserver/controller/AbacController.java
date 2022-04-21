@@ -1,8 +1,8 @@
 package com.columbia.iotabacserver.controller;
 
-import com.columbia.iotabacserver.pojo.request.DevRegRequest;
-import com.columbia.iotabacserver.pojo.request.UserRegRequest;
+import com.columbia.iotabacserver.pojo.request.*;
 import com.columbia.iotabacserver.pojo.response.DevRegResponse;
+import com.columbia.iotabacserver.pojo.response.QueryActionsResponse;
 import com.columbia.iotabacserver.service.AuthService;
 import com.columbia.iotabacserver.service.AuthenticationService;
 import com.columbia.iotabacserver.utils.Constants;
@@ -10,13 +10,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.lang.NonNull;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.ResponseBody;
-import com.columbia.iotabacserver.pojo.request.AuthRequest;
+import org.springframework.web.bind.annotation.*;
 import com.columbia.iotabacserver.pojo.response.AuthResponse;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.annotation.Resource;
@@ -77,6 +75,16 @@ public class AbacController {
         return new DevRegResponse(token);
     }
 
+    @PostMapping(value = "authz/login/dev", produces = MediaType.APPLICATION_JSON_VALUE, consumes =
+            MediaType.APPLICATION_JSON_VALUE)
+    public void postDevLogin(@RequestBody DevLoginRequest request) {
+        if (!StringUtils.hasText(request.getDevId()) || !StringUtils.hasText(request.getToken())
+                || !authenticationService.deviceAuthenticateCheck(request.getDevId(), request.getToken())) {
+            logger.info("invalid device login request");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Constants.INVALID_DEV_LOGIN);
+        }
+    }
+
     @PostMapping(value = "authz/register/user", produces = MediaType.APPLICATION_JSON_VALUE, consumes =
             MediaType.APPLICATION_JSON_VALUE)
     public void postUserRegister(@RequestBody UserRegRequest request) {
@@ -86,6 +94,32 @@ public class AbacController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Constants.INVALID_USER_REG_INFO);
         }
 
+        if (authenticationService.userExists(request.getUsername())) {
+            logger.info("user already registered");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Constants.USER_ALREADY_REG);
+        }
+
         authenticationService.registerUser(request.getUsername(), request.getPassword(), request.getAttrs());
+    }
+
+    @PostMapping(value = "authz/login/user", produces = MediaType.APPLICATION_JSON_VALUE, consumes =
+            MediaType.APPLICATION_JSON_VALUE)
+    public void postUserLogin(@RequestBody UserLoginRequest request) {
+        if (!StringUtils.hasText(request.getUsername()) || !StringUtils.hasText(request.getPassword())
+        || !authenticationService.userAuthenticateCheck(request.getUsername(), request.getPassword())) {
+            logger.info("invalid user login request");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Constants.INVALID_USER_LOGIN);
+        }
+    }
+
+    @GetMapping(value = "authz/query-actions/{devId}")
+    public QueryActionsResponse getDeviceActions(@NonNull @PathVariable("devId") String devId) {
+        String actions = authenticationService.queryDevActions(devId);
+        return new QueryActionsResponse(actions);
+    }
+
+    @ExceptionHandler(ResponseStatusException.class)
+    ResponseEntity<String> handleResponseStatusException(ResponseStatusException e) {
+        return new ResponseEntity<>(e.getMessage(), e.getStatus());
     }
 }

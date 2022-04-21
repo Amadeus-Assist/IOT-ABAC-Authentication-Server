@@ -7,6 +7,6 @@ import lombok.*;
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
-public class OpaEvalResponse {
-    private String decision;
+public class QueryActionsResponse {
+    private String actions;
 }

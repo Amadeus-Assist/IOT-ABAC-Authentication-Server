@@ -41,10 +41,13 @@ public interface AuthzMapper {
     @Select("SELECT user_id AS username, pwd as password FROM user_attrs WHERE user_id=#{userId} LIMIT 1")
     UserCheckPojo findUserCheckInfo(String userId);
 
-    @Select("SELECT dev_id AS devId, dev_type AS devType, token FROM dev_access_tokens WHERE dev_id=#{devId} LIMIT 1")
+    @Select("SELECT dev_id AS devId, dev_type AS devType, token FROM dev_info WHERE dev_id=#{devId} LIMIT 1")
     DevCheckPojo findDevCheckInfo(String devId);
 
-    @Insert("INSERT INTO dev_access_tokens(dev_id, dev_type, token) VALUES(#{devId}, #{devType}, #{token})")
+    @Insert("INSERT INTO dev_info(dev_id, dev_type, token) VALUES(#{devId}, #{devType}, #{token})")
     @Options(useGeneratedKeys = true)
     void insertDevCheckInfo(DevCheckPojo pojo);
+
+    @Select("SELECT dev_id AS devId, actions FROM dev_info WHERE dev_id=#{devId} LIMIT 1")
+    DevActionsPojo findDevActions(String devId);
 }

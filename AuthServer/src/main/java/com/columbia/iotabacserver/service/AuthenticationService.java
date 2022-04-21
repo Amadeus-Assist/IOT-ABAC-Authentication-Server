@@ -12,4 +12,6 @@ public interface AuthenticationService {
     boolean userExists(String username);
 
     void registerUser(String username, String password, String attrs);
+
+    String queryDevActions(String devId);
 }

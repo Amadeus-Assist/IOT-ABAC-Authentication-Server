@@ -2,7 +2,6 @@ package gui;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import service.ClientContext;
 import service.ClientService;
@@ -18,84 +17,62 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
-import java.net.http.HttpClient;
 import java.util.Locale;
 
-public class TestClient {
+public class RegisterWindow {
     private final JFrame mainFrame;
     private JPanel mainPanel;
     private JTextField usernameTextField;
     private JTextField passwordTextField;
-    private JButton logInButton;
-    private JButton registerButton;
+    private JButton submitButton;
     private JLabel usernameLabel;
     private JLabel passwordLabel;
     private JLabel titleLabel;
     private JScrollPane loggerScrollPane;
+    private JLabel attributesLabel;
+    private JTextArea attributesTextArea;
+    private JScrollPane attributesJScrollPane;
     private JTextPane loggerTextPane;
-    private final ClientContext context;
-    private TestClient me;
+    private JButton backButton;
+    private ClientContext context;
+    private JFrame clientFrame;
 
-    public TestClient(ClientContext context) {
-        this.mainFrame = new JFrame("Test Client");
-        this.context = context;
-    }
-
-    public JFrame getMainFrame() {
-        return this.mainFrame;
-    }
-
-    public JTextPane getLoggerTextPane() {
-        return this.loggerTextPane;
-    }
-
-    public ClientContext getContext() {
-        return this.context;
-    }
-
-    public void run() {
-//        this.loggerTextArea.setFocusable(false);
-        this.mainFrame.setContentPane(this.mainPanel);
-        this.mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.mainFrame.pack();
-        this.mainFrame.setLocationRelativeTo(null);
-        this.mainFrame.setVisible(true);
-        this.me = this;
-        this.loggerTextPane.setEditable(false);
-
+    public RegisterWindow(TestClient client) {
+        this.mainFrame = new JFrame("Register");
+        this.clientFrame = client.getMainFrame();
+        this.context = client.getContext();
+        this.loggerTextPane.setDocument(client.getLoggerTextPane().getStyledDocument());
         this.mainFrame.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                try {
-                    context.getClient().close();
-                } catch (IOException ioException) {
-                    ioException.printStackTrace();
-                }
+                mainFrame.dispose();
+                clientFrame.setVisible(true);
+                clientFrame.setEnabled(true);
+                clientFrame.setFocusable(true);
+                clientFrame.requestFocus();
             }
         });
 
-        registerButton.addMouseListener(new MouseAdapter() {
+        this.backButton.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                new RegisterWindow(me).run();
-                mainFrame.setFocusable(false);
-                mainFrame.setEnabled(false);
-                mainFrame.setVisible(false);
+                mainFrame.dispatchEvent(new WindowEvent(mainFrame, WindowEvent.WINDOW_CLOSING));
             }
         });
 
-        logInButton.addMouseListener(new MouseAdapter() {
+        this.submitButton.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 String username = usernameTextField.getText();
                 String password = passwordTextField.getText();
-                if (!Utils.hasText(username) || !Utils.hasText(password)) {
-                    Utils.appendToPane(loggerTextPane, "err: incomplete login info\n", Color.red);
+                String attrs = attributesTextArea.getText();
+                if (!Utils.hasText(username) || !Utils.hasText(password) || !Utils.hasText(attrs)) {
+                    Utils.appendToPane(loggerTextPane, "err: incomplete register info\n", Color.red);
                     return;
                 }
                 String body;
                 try {
-                    body = ClientService.generateUserLoginBody(username, password);
+                    body = ClientService.generateUserRegisterBody(username, password, attrs);
                 } catch (JsonProcessingException jsonProcessingException) {
                     Utils.appendToPane(loggerTextPane, "err: JsonProcessingException\n", Color.red);
                     return;
@@ -105,21 +82,14 @@ public class TestClient {
                 CloseableHttpResponse response;
                 try {
                     response = ClientService.sendHttpPostRequest(context.getClient(),
-                            Constants.USER_LOGIN_URL, body);
+                            Constants.USER_REG_URL, body);
                 } catch (IOException ioException) {
-                    Utils.appendToPane(loggerTextPane, "err: send login info error\n", Color.red);
+                    Utils.appendToPane(loggerTextPane, "err: send register info error\n", Color.red);
                     return;
                 }
                 assert response != null;
                 if (response.getStatusLine().getStatusCode() == 200) {
-                    context.setUsername(username);
-                    context.setPassword(password);
-                    Utils.appendToPane(loggerTextPane, "login success!\n", Color.blue);
-                    new OperateWindow(me).run();
-                    mainFrame.setFocusable(false);
-                    mainFrame.setEnabled(false);
-                    mainFrame.setVisible(false);
-
+                    Utils.appendToPane(loggerTextPane, "register success!\n", Color.blue);
                 } else {
                     String responseBodyStr;
                     try {
@@ -129,19 +99,20 @@ public class TestClient {
                         return;
                     }
                     assert Utils.hasText(responseBodyStr);
-                    Utils.appendToPane(loggerTextPane, "login fail, returned body:\n" + responseBodyStr + "\n",
+                    Utils.appendToPane(loggerTextPane, "register fail, returned body:\n" + responseBodyStr + "\n",
                             Color.red);
                 }
             }
-
         });
     }
 
-    public static void main(String[] args) {
-        ClientContext context = new ClientContext();
-        context.setClient(HttpClients.createDefault());
-        TestClient client = new TestClient(context);
-        client.run();
+    public void run() {
+        this.loggerTextPane.setEditable(false);
+        this.mainFrame.setContentPane(this.mainPanel);
+        this.mainFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        this.mainFrame.pack();
+        this.mainFrame.setLocationRelativeTo(clientFrame);
+        this.mainFrame.setVisible(true);
     }
 
     {
@@ -160,7 +131,7 @@ public class TestClient {
      */
     private void $$$setupUI$$$() {
         mainPanel = new JPanel();
-        mainPanel.setLayout(new com.intellij.uiDesigner.core.GridLayoutManager(5, 9, new Insets(10, 20, 20, 20), -1,
+        mainPanel.setLayout(new com.intellij.uiDesigner.core.GridLayoutManager(6, 9, new Insets(10, 20, 20, 20), -1,
                 -1));
         usernameLabel = new JLabel();
         usernameLabel.setText("Username");
@@ -192,17 +163,11 @@ public class TestClient {
                 com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW,
                 com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(100, -1), null, 0,
                 false));
-        logInButton = new JButton();
-        logInButton.setText("Log In");
-        mainPanel.add(logInButton, new com.intellij.uiDesigner.core.GridConstraints(3, 6, 1, 1,
+        submitButton = new JButton();
+        submitButton.setText("submit");
+        mainPanel.add(submitButton, new com.intellij.uiDesigner.core.GridConstraints(4, 6, 1, 1,
                 com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER,
                 com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL,
-                com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-        registerButton = new JButton();
-        registerButton.setText("Register");
-        mainPanel.add(registerButton, new com.intellij.uiDesigner.core.GridConstraints(3, 5, 1, 1,
-                com.intellij.uiDesigner.core.GridConstraints.ANCHOR_EAST,
-                com.intellij.uiDesigner.core.GridConstraints.FILL_NONE,
                 com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         final com.intellij.uiDesigner.core.Spacer spacer1 = new com.intellij.uiDesigner.core.Spacer();
         mainPanel.add(spacer1, new com.intellij.uiDesigner.core.GridConstraints(1, 0, 1, 1,
@@ -215,7 +180,7 @@ public class TestClient {
                 com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL,
                 com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
         final com.intellij.uiDesigner.core.Spacer spacer3 = new com.intellij.uiDesigner.core.Spacer();
-        mainPanel.add(spacer3, new com.intellij.uiDesigner.core.GridConstraints(3, 4, 1, 1,
+        mainPanel.add(spacer3, new com.intellij.uiDesigner.core.GridConstraints(4, 4, 1, 1,
                 com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER,
                 com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL,
                 com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
@@ -223,7 +188,7 @@ public class TestClient {
         Font titleLabelFont = this.$$$getFont$$$(null, -1, 18, titleLabel.getFont());
         if (titleLabelFont != null) titleLabel.setFont(titleLabelFont);
         titleLabel.setHorizontalAlignment(0);
-        titleLabel.setText("Welcome to the Authorization Service");
+        titleLabel.setText("Please Register");
         mainPanel.add(titleLabel, new com.intellij.uiDesigner.core.GridConstraints(0, 0, 1, 9,
                 com.intellij.uiDesigner.core.GridConstraints.ANCHOR_NORTH,
                 com.intellij.uiDesigner.core.GridConstraints.FILL_NONE,
@@ -231,12 +196,33 @@ public class TestClient {
                 com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(320, 40), null, 0,
                 false));
         loggerScrollPane = new JScrollPane();
-        mainPanel.add(loggerScrollPane, new com.intellij.uiDesigner.core.GridConstraints(4, 1, 1, 6,
+        mainPanel.add(loggerScrollPane, new com.intellij.uiDesigner.core.GridConstraints(5, 1, 1, 6,
                 com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER,
                 com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH,
                 com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, null, new Dimension(-1, 200), null, 0, false));
         loggerTextPane = new JTextPane();
         loggerScrollPane.setViewportView(loggerTextPane);
+        attributesLabel = new JLabel();
+        attributesLabel.setText("Attributes");
+        mainPanel.add(attributesLabel, new com.intellij.uiDesigner.core.GridConstraints(3, 1, 1, 1,
+                com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST,
+                com.intellij.uiDesigner.core.GridConstraints.FILL_NONE,
+                com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED,
+                com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        attributesJScrollPane = new JScrollPane();
+        mainPanel.add(attributesJScrollPane, new com.intellij.uiDesigner.core.GridConstraints(3, 2, 1, 5,
+                com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER,
+                com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH,
+                com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+        attributesTextArea = new JTextArea();
+        attributesTextArea.setRows(5);
+        attributesJScrollPane.setViewportView(attributesTextArea);
+        backButton = new JButton();
+        backButton.setText("back");
+        mainPanel.add(backButton, new com.intellij.uiDesigner.core.GridConstraints(4, 5, 1, 1,
+                com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER,
+                com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL,
+                com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
     }
 
     /**
