@@ -6,6 +6,7 @@ public class ClientContext {
     private CloseableHttpClient client;
     private String username;
     private String password;
+    private SearchService searchService;
 
     public CloseableHttpClient getClient() {
         return client;
@@ -29,5 +30,13 @@ public class ClientContext {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public SearchService getSearchService() {
+        return searchService;
+    }
+
+    public void setSearchService(SearchService searchService) {
+        this.searchService = searchService;
     }
 }

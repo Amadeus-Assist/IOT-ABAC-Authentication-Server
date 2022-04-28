@@ -7,6 +7,9 @@ public class ClientIotContext {
     private String devId;
     private String token;
     private String actionsStr;
+    private boolean isLoggedIn;
+    private LocalHttpServer localHttpServer;
+    private SearchService searchService;
 
     public CloseableHttpClient getClient() {
         return client;
@@ -38,5 +41,29 @@ public class ClientIotContext {
 
     public void setActionsStr(String actionsStr) {
         this.actionsStr = actionsStr;
+    }
+
+    public boolean isLoggedIn() {
+        return isLoggedIn;
+    }
+
+    public void setLoggedIn(boolean loggedIn) {
+        isLoggedIn = loggedIn;
+    }
+
+    public LocalHttpServer getLocalHttpServer() {
+        return localHttpServer;
+    }
+
+    public void setLocalHttpServer(LocalHttpServer localHttpServer) {
+        this.localHttpServer = localHttpServer;
+    }
+
+    public SearchService getSearchService() {
+        return searchService;
+    }
+
+    public void setSearchService(SearchService searchService) {
+        this.searchService = searchService;
     }
 }

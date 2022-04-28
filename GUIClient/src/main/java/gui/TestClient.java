@@ -6,6 +6,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import service.ClientContext;
 import service.ClientService;
+import service.SearchService;
 import utils.Constants;
 import utils.Utils;
 
@@ -18,7 +19,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
-import java.net.http.HttpClient;
 import java.util.Locale;
 
 public class TestClient {
@@ -54,7 +54,6 @@ public class TestClient {
     }
 
     public void run() {
-//        this.loggerTextArea.setFocusable(false);
         this.mainFrame.setContentPane(this.mainPanel);
         this.mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.mainFrame.pack();
@@ -71,6 +70,7 @@ public class TestClient {
                 } catch (IOException ioException) {
                     ioException.printStackTrace();
                 }
+                context.getSearchService().close();
             }
         });
 
@@ -119,7 +119,6 @@ public class TestClient {
                     mainFrame.setFocusable(false);
                     mainFrame.setEnabled(false);
                     mainFrame.setVisible(false);
-
                 } else {
                     String responseBodyStr;
                     try {
@@ -141,6 +140,8 @@ public class TestClient {
         ClientContext context = new ClientContext();
         context.setClient(HttpClients.createDefault());
         TestClient client = new TestClient(context);
+        SearchService searchService = new SearchService(-1, client.getLoggerTextPane());
+        context.setSearchService(searchService);
         client.run();
     }
 

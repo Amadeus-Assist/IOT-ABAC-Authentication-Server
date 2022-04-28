@@ -1,5 +1,7 @@
 package utils;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import javax.swing.*;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.SimpleAttributeSet;
@@ -8,6 +10,8 @@ import javax.swing.text.StyleContext;
 import java.awt.*;
 
 public class Utils {
+    public static ObjectMapper mapper = new ObjectMapper();
+
     public static void appendToPane(JTextPane pane, String text, Color c) {
         pane.setEditable(true);
         StyleContext sc = StyleContext.getDefaultStyleContext();

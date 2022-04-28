@@ -1,8 +1,11 @@
 package gui;
 
 import service.ClientContext;
+import utils.Utils;
 
 import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.plaf.FontUIResource;
 import javax.swing.text.StyleContext;
 import java.awt.*;
@@ -11,11 +14,13 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 public class OperateWindow {
-    private JList iotJList;
-    private JList actionsJList;
+    private JList<String> iotJList;
+    private JList<String> actionsJList;
     private JButton logOutButton;
     private JButton sendButton;
     private JButton searchButton;
@@ -30,12 +35,22 @@ public class OperateWindow {
     private JScrollPane actionsJScrollPane;
     private final ClientContext context;
     private final JFrame clientFrame;
+    private final DefaultListModel<String> iotListModel;
+    private Map<String, DefaultListModel<String>> actionModelMap;
+    private final OperateWindow thisWindow;
+    private volatile boolean isSearching;
+    private final DefaultListModel<String> emptyMdodel;
 
     public OperateWindow(TestClient client) {
         this.mainFrame = new JFrame("Operating Window");
         this.clientFrame = client.getMainFrame();
         this.context = client.getContext();
         this.loggerTextPane.setDocument(client.getLoggerTextPane().getStyledDocument());
+        this.iotListModel = new DefaultListModel<>();
+        this.actionModelMap = new HashMap<>();
+        this.thisWindow = this;
+        this.isSearching = false;
+        this.emptyMdodel = new DefaultListModel<>();
 
         this.mainFrame.addWindowListener(new WindowAdapter() {
             @Override
@@ -45,6 +60,7 @@ public class OperateWindow {
                 } catch (IOException ioException) {
                     ioException.printStackTrace();
                 }
+                context.getSearchService().close();
             }
         });
 
@@ -62,8 +78,40 @@ public class OperateWindow {
         this.searchButton.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                super.mouseClicked(e);
+                if (isSearching) {
+                    return;
+                }
+                isSearching = true;
+                Utils.appendToPane(loggerTextPane, "searching nearby devices...\n", Color.black);
+                new Thread(() -> {
+                    Map<String, DefaultListModel<String>> newModelMap = new HashMap<>();
+                    context.getSearchService().search();
+                    iotListModel.clear();
+                    context.getSearchService().getNearByDevices().forEach((k, v) -> {
+                        iotListModel.addElement(k);
+                        DefaultListModel<String> localModel = new DefaultListModel<>();
+                        String[] actions = v.split("/");
+                        for (String act : actions) {
+                            localModel.addElement(act);
+                        }
+                        newModelMap.put(k, localModel);
+                    });
+                    thisWindow.actionModelMap = newModelMap;
+                    if (!iotListModel.isEmpty()) {
+                        iotJList.setSelectedIndex(0);
+                    }
+                    Utils.appendToPane(loggerTextPane, "nearby devices: " + newModelMap + "\n", Color.black);
+                    isSearching = false;
+                }).start();
             }
+        });
+
+        this.iotJList.addListSelectionListener(e -> {
+            System.out.println("actionModelMap: " + actionModelMap);
+            actionsJList.setModel(iotJList.getSelectedValue() == null ? emptyMdodel :
+                    actionModelMap.get(iotJList.getSelectedValue()) == null ? emptyMdodel :
+                            actionModelMap.get(iotJList.getSelectedValue()));
+            System.out.println("selected index: " + iotJList.getSelectedIndex());
         });
 
         this.sendButton.addMouseListener(new MouseAdapter() {
@@ -75,12 +123,16 @@ public class OperateWindow {
     }
 
     public void run() {
+        this.iotJList.setModel(this.iotListModel);
         this.loggerTextPane.setEditable(false);
         this.mainFrame.setContentPane(this.mainPanel);
         this.mainFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         this.mainFrame.pack();
         this.mainFrame.setLocationRelativeTo(clientFrame);
         this.mainFrame.setVisible(true);
+        this.searchButton.dispatchEvent(new MouseEvent(searchButton, MouseEvent.MOUSE_CLICKED,
+                System.currentTimeMillis(), 0, 0, 0, 1, false));
+//        this.searchButton.doClick();
     }
 
     {
