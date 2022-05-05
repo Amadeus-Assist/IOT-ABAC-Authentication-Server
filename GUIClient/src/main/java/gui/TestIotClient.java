@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import pojo.DevInfo;
 import service.ClientIotContext;
 import service.ClientService;
 import service.LocalHttpServer;
@@ -242,13 +243,16 @@ public class TestIotClient {
         context.getSearchService().restart();
         this.executorService = Executors.newSingleThreadScheduledExecutor();
         executorService.scheduleWithFixedDelay(() -> {
+            Map<String, DevInfo> previousNearbyDevices = context.getSearchService().getNearByDevices();
             context.getSearchService().search();
-            try {
-                String nearbyDevJson =
-                        Utils.mapper.writerWithDefaultPrettyPrinter().writeValueAsString(context.getSearchService().getNearByDevices());
-                Utils.appendToPane(loggerTextPane, "current nearby devices:\n" + nearbyDevJson + "\n", Color.black);
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
+            if (!previousNearbyDevices.equals(context.getSearchService().getNearByDevices())) {
+                try {
+                    String nearbyDevJson =
+                            Utils.mapper.writerWithDefaultPrettyPrinter().writeValueAsString(context.getSearchService().getNearByDevices());
+                    Utils.appendToPane(loggerTextPane, "current nearby devices:\n" + nearbyDevJson + "\n", Color.black);
+                } catch (JsonProcessingException e) {
+                    e.printStackTrace();
+                }
             }
         }, 0, period, TimeUnit.MILLISECONDS);
     }
@@ -261,6 +265,8 @@ public class TestIotClient {
     }
 
     public static void main(String[] args) {
+//        args = new String[1];
+//        args[0] = "6200";
         if (args.length < 1 || !args[0].matches(Constants.PORT_REGEX)) {
             throw new RuntimeException("Invalid launch args, please provide the port number (6200-6209)");
         }
@@ -315,8 +321,8 @@ public class TestIotClient {
                 com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST,
                 com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL,
                 com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW,
-                com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(220, -1), null, 0,
-                false));
+                com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(220, -1),
+                new Dimension(300, -1), 0, false));
         tokenLabel = new JLabel();
         tokenLabel.setText("Token");
         mainPanel.add(tokenLabel, new com.intellij.uiDesigner.core.GridConstraints(2, 1, 1, 1,
@@ -330,8 +336,8 @@ public class TestIotClient {
                 com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST,
                 com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL,
                 com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW,
-                com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(100, -1), null, 0,
-                false));
+                com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(100, -1),
+                new Dimension(300, -1), 0, false));
         logInButton = new JButton();
         logInButton.setText("log In");
         mainPanel.add(logInButton, new com.intellij.uiDesigner.core.GridConstraints(3, 6, 1, 1,
@@ -374,7 +380,7 @@ public class TestIotClient {
         mainPanel.add(loggerScrollPane, new com.intellij.uiDesigner.core.GridConstraints(6, 1, 1, 6,
                 com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER,
                 com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH,
-                com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, null, new Dimension(-1, 200), null, 0, false));
+                com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, null, new Dimension(-1, 200), new Dimension(400, -1), 0, false));
         loggerTextPane = new JTextPane();
         loggerScrollPane.setViewportView(loggerTextPane);
         final JLabel label1 = new JLabel();
@@ -388,7 +394,7 @@ public class TestIotClient {
         mainPanel.add(scrollPane1, new com.intellij.uiDesigner.core.GridConstraints(4, 2, 1, 5,
                 com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER,
                 com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH,
-                com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+                com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, null, null, new Dimension(300, -1), 0, false));
         actionsList = new JList();
         actionsList.setSelectionMode(0);
         scrollPane1.setViewportView(actionsList);

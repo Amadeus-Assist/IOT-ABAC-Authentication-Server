@@ -176,8 +176,8 @@ public class TestClient {
                 com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST,
                 com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL,
                 com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW,
-                com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(220, -1), null, 0,
-                false));
+                com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(220, -1),
+                new Dimension(300, -1), 0, false));
         passwordLabel = new JLabel();
         passwordLabel.setText("Password");
         mainPanel.add(passwordLabel, new com.intellij.uiDesigner.core.GridConstraints(2, 1, 1, 1,
@@ -191,8 +191,8 @@ public class TestClient {
                 com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST,
                 com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL,
                 com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW,
-                com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(100, -1), null, 0,
-                false));
+                com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(100, -1),
+                new Dimension(300, -1), 0, false));
         logInButton = new JButton();
         logInButton.setText("Log In");
         mainPanel.add(logInButton, new com.intellij.uiDesigner.core.GridConstraints(3, 6, 1, 1,
@@ -235,7 +235,7 @@ public class TestClient {
         mainPanel.add(loggerScrollPane, new com.intellij.uiDesigner.core.GridConstraints(4, 1, 1, 6,
                 com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER,
                 com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH,
-                com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, null, new Dimension(-1, 200), null, 0, false));
+                com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, null, new Dimension(-1, 200), new Dimension(400, -1), 0, false));
         loggerTextPane = new JTextPane();
         loggerScrollPane.setViewportView(loggerTextPane);
     }

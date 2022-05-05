@@ -1,10 +1,7 @@
 package com.columbia.iotabacserver.service.impl;
 
 import com.columbia.iotabacserver.dao.mapper.AuthzMapper;
-import com.columbia.iotabacserver.dao.model.DevActionsPojo;
-import com.columbia.iotabacserver.dao.model.DevCheckPojo;
-import com.columbia.iotabacserver.dao.model.UserAttrsPojo;
-import com.columbia.iotabacserver.dao.model.UserCheckPojo;
+import com.columbia.iotabacserver.dao.model.*;
 import com.columbia.iotabacserver.service.AuthenticationService;
 import com.columbia.iotabacserver.utils.Utils;
 import org.slf4j.Logger;
@@ -41,10 +38,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    public String registerDevice(String devId, String devType) {
+    public String registerDevice(String devId, String devType, String attrs) {
         String token = Utils.generateNewToken();
-        DevCheckPojo pojo = new DevCheckPojo(devId, devType, token);
-        mapper.insertDevCheckInfo(pojo);
+        DevRegisterPojo pojo = new DevRegisterPojo(devId, devType, token, attrs);
+        mapper.insertDevInfo(pojo);
         return token;
     }
 

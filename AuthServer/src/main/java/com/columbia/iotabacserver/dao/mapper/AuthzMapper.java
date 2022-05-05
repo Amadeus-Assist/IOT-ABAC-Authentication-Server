@@ -44,10 +44,13 @@ public interface AuthzMapper {
     @Select("SELECT dev_id AS devId, dev_type AS devType, token FROM dev_info WHERE dev_id=#{devId} LIMIT 1")
     DevCheckPojo findDevCheckInfo(String devId);
 
-    @Insert("INSERT INTO dev_info(dev_id, dev_type, token) VALUES(#{devId}, #{devType}, #{token})")
+    @Insert("INSERT INTO dev_info(dev_id, dev_type, token, attrs) VALUES(#{devId}, #{devType}, #{token}, #{attrs})")
     @Options(useGeneratedKeys = true)
-    void insertDevCheckInfo(DevCheckPojo pojo);
+    void insertDevInfo(DevRegisterPojo pojo);
 
     @Select("SELECT dev_id AS devId, actions FROM dev_info WHERE dev_id=#{devId} LIMIT 1")
     DevActionsPojo findDevActions(String devId);
+
+    @Select("SELECT dev_id AS devId, attrs FROM dev_info WHERE dev_id=#{devId} LIMIT 1")
+    DevAttrsPojo findDevAttrs(String devId);
 }

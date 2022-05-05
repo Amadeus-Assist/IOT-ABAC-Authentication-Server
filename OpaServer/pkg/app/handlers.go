@@ -56,14 +56,20 @@ func (s *Server) Eval() gin.HandlerFunc {
 
 		if err != nil {
 			log.Printf("handler error: %v\n", err)
-			context.JSON(http.StatusBadRequest, nil)
+			response := map[string]string{
+				"message": err.Error(),
+			}
+			context.JSON(http.StatusBadRequest, response)
 			return
 		}
 
 		policy, input, err := s.preprocessEvalRequest(&newEvalRequest)
 		if err != nil {
 			log.Printf("handler error: %v\n", err)
-			context.JSON(http.StatusBadRequest, nil)
+			response := map[string]string{
+				"message": err.Error(),
+			}
+			context.JSON(http.StatusBadRequest, response)
 			return
 		}
 
@@ -71,7 +77,10 @@ func (s *Server) Eval() gin.HandlerFunc {
 
 		if err != nil {
 			log.Printf("eval request error: %v\n", err)
-			context.JSON(http.StatusBadRequest, nil)
+			response := map[string]string{
+				"message": err.Error(),
+			}
+			context.JSON(http.StatusBadRequest, response)
 			return
 		}
 

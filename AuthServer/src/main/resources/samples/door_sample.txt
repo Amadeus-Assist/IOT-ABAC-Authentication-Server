@@ -2,10 +2,10 @@
     {
         "key": "rule_1",
         "content": [
-            "sub_owner_attr := sql_query(\"abac\", \"SELECT attrs FROM user_attrs WHERE user_id = ?\", [input.sub.owner_id])",
-            "sub_owner_attr.school == \"columbia engineering\"",
+            "sub_attr := sql_query(\"abac\", \"SELECT attrs FROM user_attrs WHERE user_id = ?\", [input.sub.id])",
+            "sub_attr.school == \"columbia engineering\"",
             "obj_owner_attr := sql_query(\"abac\", \"SELECT attrs FROM user_attrs WHERE user_id = ?\", [input.obj.owner_id])",
-            "sub_owner_attr.instructor_uni == obj_owner_attr.uni",
+            "sub_attr.instructor_uni == obj_owner_attr.uni",
             "obj_owner_attr2 := sql_query(\"abac\", \"SELECT attrs FROM user_attrs WHERE user_id = ?\", [input.obj.owner_id])",
             "obj_owner_attr3 := sql_query(\"abac\", \"SELECT attrs FROM user_attrs WHERE user_id = ?\", [input.obj.owner_id])",
             "obj_owner_attr4 := sql_query(\"abac\", \"SELECT attrs FROM user_attrs WHERE user_id = ?\", [input.obj.owner_id])",
@@ -14,8 +14,8 @@
     },{
         "key": "rule_2",
         "content": [
-            "api_sub_owner_attr := api_get_obj_term(\"http://localhost:8082\", [\"columbia\", input.sub.owner_id])",
-            "api_sub_owner_attr.uni == \"bob145\""
+            "api_sub_attr := api_get_obj_term(\"http://localhost:8082\", [\"columbia\", input.sub.id])",
+            "api_sub_attr.uni == \"bob145\""
         ]
     }
 ]

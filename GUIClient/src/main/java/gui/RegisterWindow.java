@@ -146,8 +146,8 @@ public class RegisterWindow {
                 com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST,
                 com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL,
                 com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW,
-                com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(220, -1), null, 0,
-                false));
+                com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(220, -1),
+                new Dimension(300, -1), 0, false));
         passwordLabel = new JLabel();
         passwordLabel.setText("Password");
         mainPanel.add(passwordLabel, new com.intellij.uiDesigner.core.GridConstraints(2, 1, 1, 1,
@@ -161,8 +161,8 @@ public class RegisterWindow {
                 com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST,
                 com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL,
                 com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW,
-                com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(100, -1), null, 0,
-                false));
+                com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(100, -1),
+                new Dimension(300, -1), 0, false));
         submitButton = new JButton();
         submitButton.setText("submit");
         mainPanel.add(submitButton, new com.intellij.uiDesigner.core.GridConstraints(4, 6, 1, 1,
@@ -199,7 +199,7 @@ public class RegisterWindow {
         mainPanel.add(loggerScrollPane, new com.intellij.uiDesigner.core.GridConstraints(5, 1, 1, 6,
                 com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER,
                 com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH,
-                com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, null, new Dimension(-1, 200), null, 0, false));
+                com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, null, new Dimension(-1, 200), new Dimension(400, -1), 0, false));
         loggerTextPane = new JTextPane();
         loggerScrollPane.setViewportView(loggerTextPane);
         attributesLabel = new JLabel();
@@ -213,7 +213,7 @@ public class RegisterWindow {
         mainPanel.add(attributesJScrollPane, new com.intellij.uiDesigner.core.GridConstraints(3, 2, 1, 5,
                 com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER,
                 com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH,
-                com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+                com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, null, null, new Dimension(300, -1), 0, false));
         attributesTextArea = new JTextArea();
         attributesTextArea.setRows(5);
         attributesJScrollPane.setViewportView(attributesTextArea);

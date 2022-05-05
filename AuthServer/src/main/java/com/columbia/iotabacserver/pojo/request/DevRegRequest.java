@@ -13,4 +13,6 @@ public class DevRegRequest {
     private String devId;
     @JsonProperty("device_type")
     private String devType;
+    @JsonProperty("attrs")
+    private String attrs;
 }

@@ -32,6 +32,8 @@ public class RegisterIotWindow {
     private JScrollPane loggerScrollPane;
     private JTextPane loggerTextPane;
     private JButton backButton;
+    private JLabel deviceAttributesLabel;
+    private JTextArea devAttrTextArea;
     private final ClientIotContext context;
     private final JFrame clientFrame;
 
@@ -63,13 +65,14 @@ public class RegisterIotWindow {
             public void mouseClicked(MouseEvent e) {
                 String devId = devIdTextField.getText();
                 String devType = devTypeTextField.getText();
-                if (!Utils.hasText(devId) || !Utils.hasText(devType)) {
+                String attrs = devAttrTextArea.getText();
+                if (!Utils.hasText(devId) || !Utils.hasText(devType) || !Utils.hasText(attrs)) {
                     Utils.appendToPane(loggerTextPane, "err: incomplete register info\n", Color.red);
                     return;
                 }
                 String body;
                 try {
-                    body = ClientService.generateDevRegisterBody(devId, devType);
+                    body = ClientService.generateDevRegisterBody(devId, devType, attrs);
                 } catch (JsonProcessingException jsonProcessingException) {
                     Utils.appendToPane(loggerTextPane, "err: JsonProcessingException\n", Color.red);
                     return;
@@ -129,7 +132,7 @@ public class RegisterIotWindow {
      */
     private void $$$setupUI$$$() {
         mainPanel = new JPanel();
-        mainPanel.setLayout(new com.intellij.uiDesigner.core.GridLayoutManager(5, 9, new Insets(10, 20, 20, 20), -1,
+        mainPanel.setLayout(new com.intellij.uiDesigner.core.GridLayoutManager(6, 9, new Insets(10, 20, 20, 20), -1,
                 -1));
         devIdLabel = new JLabel();
         devIdLabel.setText("Device ID");
@@ -144,8 +147,8 @@ public class RegisterIotWindow {
                 com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST,
                 com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL,
                 com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW,
-                com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(220, -1), null, 0,
-                false));
+                com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(220, -1),
+                new Dimension(300, -1), 0, false));
         devTypeLabel = new JLabel();
         devTypeLabel.setText("Device Type");
         mainPanel.add(devTypeLabel, new com.intellij.uiDesigner.core.GridConstraints(2, 1, 1, 1,
@@ -159,11 +162,11 @@ public class RegisterIotWindow {
                 com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST,
                 com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL,
                 com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW,
-                com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(100, -1), null, 0,
-                false));
+                com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(100, -1),
+                new Dimension(300, -1), 0, false));
         submitButton = new JButton();
         submitButton.setText("submit");
-        mainPanel.add(submitButton, new com.intellij.uiDesigner.core.GridConstraints(3, 6, 1, 1,
+        mainPanel.add(submitButton, new com.intellij.uiDesigner.core.GridConstraints(4, 6, 1, 1,
                 com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER,
                 com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL,
                 com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
@@ -178,7 +181,7 @@ public class RegisterIotWindow {
                 com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL,
                 com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
         final com.intellij.uiDesigner.core.Spacer spacer3 = new com.intellij.uiDesigner.core.Spacer();
-        mainPanel.add(spacer3, new com.intellij.uiDesigner.core.GridConstraints(3, 4, 1, 1,
+        mainPanel.add(spacer3, new com.intellij.uiDesigner.core.GridConstraints(4, 2, 1, 3,
                 com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER,
                 com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL,
                 com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
@@ -194,18 +197,33 @@ public class RegisterIotWindow {
                 com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(320, 40), null, 0,
                 false));
         loggerScrollPane = new JScrollPane();
-        mainPanel.add(loggerScrollPane, new com.intellij.uiDesigner.core.GridConstraints(4, 1, 1, 6,
+        mainPanel.add(loggerScrollPane, new com.intellij.uiDesigner.core.GridConstraints(5, 1, 1, 6,
                 com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER,
                 com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH,
-                com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, null, new Dimension(-1, 200), null, 0, false));
+                com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, null, new Dimension(-1, 200), new Dimension(400, -1), 0, false));
         loggerTextPane = new JTextPane();
         loggerScrollPane.setViewportView(loggerTextPane);
         backButton = new JButton();
         backButton.setText("back");
-        mainPanel.add(backButton, new com.intellij.uiDesigner.core.GridConstraints(3, 5, 1, 1,
+        mainPanel.add(backButton, new com.intellij.uiDesigner.core.GridConstraints(4, 5, 1, 1,
                 com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER,
                 com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL,
                 com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        deviceAttributesLabel = new JLabel();
+        deviceAttributesLabel.setText("Device Attributes");
+        mainPanel.add(deviceAttributesLabel, new com.intellij.uiDesigner.core.GridConstraints(3, 1, 1, 1,
+                com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST,
+                com.intellij.uiDesigner.core.GridConstraints.FILL_NONE,
+                com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED,
+                com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        final JScrollPane scrollPane1 = new JScrollPane();
+        mainPanel.add(scrollPane1, new com.intellij.uiDesigner.core.GridConstraints(3, 2, 1, 5,
+                com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER,
+                com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH,
+                com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, null, null, new Dimension(300, -1), 0, false));
+        devAttrTextArea = new JTextArea();
+        devAttrTextArea.setRows(5);
+        scrollPane1.setViewportView(devAttrTextArea);
     }
 
     /**

@@ -84,7 +84,7 @@ func PrepareRego(context *OPAServerContext) {
 			return nil, nil
 		}
 
-		//fmt.Printf("result: %v\n", attributes.attrs)
+		fmt.Printf("sql query result: %v\n", attributes.attrs)
 
 		astTerm, err := ast.ParseTerm(attributes.attrs)
 

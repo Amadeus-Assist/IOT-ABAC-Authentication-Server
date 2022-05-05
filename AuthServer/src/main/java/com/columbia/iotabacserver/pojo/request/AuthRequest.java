@@ -9,8 +9,6 @@ import lombok.*;
 @Getter
 @ToString
 public class AuthRequest {
-    @JsonProperty("access_request")
-    private String accessRequest;
     @JsonProperty("obj_dev_id")
     private String objDevId;
     @JsonProperty("obj_token")
@@ -19,4 +17,8 @@ public class AuthRequest {
     private String subUsername;
     @JsonProperty("sub_user_password")
     private String subUserPwd;
+    @JsonProperty("action")
+    private String action;
+    @JsonProperty("env_info")
+    private String envInfo;
 }

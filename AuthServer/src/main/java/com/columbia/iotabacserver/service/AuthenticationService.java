@@ -7,7 +7,7 @@ public interface AuthenticationService {
 
     boolean deviceExists(String devId);
 
-    String registerDevice(String devId, String devType);
+    String registerDevice(String devId, String devType, String attrs);
 
     boolean userExists(String username);
 

@@ -6,6 +6,7 @@ import com.columbia.iotabacserver.pojo.response.QueryActionsResponse;
 import com.columbia.iotabacserver.service.AuthService;
 import com.columbia.iotabacserver.service.AuthenticationService;
 import com.columbia.iotabacserver.utils.Constants;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -44,12 +45,19 @@ public class AbacController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Constants.INVALID_DEV_INFO);
         }
 
-        if (!StringUtils.hasText(request.getAccessRequest())) {
+        if (!StringUtils.hasText(request.getAction()) || !StringUtils.hasText(request.getEnvInfo())) {
             logger.info("empty access request");
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Constants.INVALID_ACCESS_REQUEST);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Constants.INVALID_ACCESS_REQUEST_INFO);
         }
 
-        boolean pass = authService.opaEval(request.getAccessRequest());
+        boolean pass = false;
+        try {
+            pass = authService.opaEval(authService.assembleAccessRequest(request.getSubUsername(),
+                    request.getObjDevId(), request.getAction(), request.getEnvInfo()));
+        } catch (JsonProcessingException e) {
+            logger.info("cannot assemble access request");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Constants.INVALID_ACCESS_REQUEST_INFO);
+        }
         if (pass) {
             return new AuthResponse(Constants.TRUE);
         }
@@ -60,7 +68,8 @@ public class AbacController {
             MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public DevRegResponse postDevRegister(@RequestBody DevRegRequest request) {
-        if (!StringUtils.hasText(request.getDevId()) || !StringUtils.hasText(request.getDevType())) {
+        if (!StringUtils.hasText(request.getDevId()) || !StringUtils.hasText(request.getDevType())
+                || !StringUtils.hasText(request.getAttrs())) {
             logger.info("invalid device register request");
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Constants.INVALID_DEV_REG_INFO);
         }
@@ -70,7 +79,8 @@ public class AbacController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Constants.DEV_ALREADY_REG);
         }
 
-        String token = authenticationService.registerDevice(request.getDevId(), request.getDevType());
+        String token = authenticationService.registerDevice(request.getDevId(), request.getDevType(),
+                request.getAttrs());
         return new DevRegResponse(token);
     }
 
@@ -105,7 +115,7 @@ public class AbacController {
             MediaType.APPLICATION_JSON_VALUE)
     public void postUserLogin(@RequestBody UserLoginRequest request) {
         if (!StringUtils.hasText(request.getUsername()) || !StringUtils.hasText(request.getPassword())
-        || !authenticationService.userAuthenticateCheck(request.getUsername(), request.getPassword())) {
+                || !authenticationService.userAuthenticateCheck(request.getUsername(), request.getPassword())) {
             logger.info("invalid user login request");
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Constants.INVALID_USER_AUTHENTICATION);
         }

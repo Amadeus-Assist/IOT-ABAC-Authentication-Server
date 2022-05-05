@@ -5,6 +5,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import pojo.DevInfo;
 import pojo.QueryInfoResponse;
 import utils.Constants;
 import utils.Utils;
@@ -21,7 +22,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 public class SearchService {
     private CloseableHttpClient client;
-    private Map<String, String> nearByDevices;
+    private Map<String, DevInfo> nearByDevices;
     private int selfPort;
     private JTextPane loggerPane;
     private volatile boolean stopped;
@@ -37,7 +38,7 @@ public class SearchService {
     }
 
     public void search() {
-        ConcurrentHashMap<String, String> newMap = new ConcurrentHashMap<>();
+        ConcurrentHashMap<String, DevInfo> newMap = new ConcurrentHashMap<>();
         final ConcurrentLinkedQueue<Integer> queue = new ConcurrentLinkedQueue<>();
         for (int i = 6200; i < 6210 && !stopped; i++) {
             if (i == selfPort) {
@@ -77,7 +78,8 @@ public class SearchService {
                             && Constants.OK.equals(queryInfoResponse.getMessage())
                             && Utils.hasText(queryInfoResponse.getDev_id())
                             && Utils.hasText(queryInfoResponse.getActions())) {
-                        newMap.put(queryInfoResponse.getDev_id(), queryInfoResponse.getActions());
+                        newMap.put(queryInfoResponse.getDev_id(), new DevInfo(destPort, queryInfoResponse.getDev_id()
+                                , queryInfoResponse.getActions()));
                     }
                 }
                 queue.offer(destPort);
@@ -93,7 +95,7 @@ public class SearchService {
         this.nearByDevices = new HashMap<>(newMap);
     }
 
-    public Map<String, String> getNearByDevices() {
+    public Map<String, DevInfo> getNearByDevices() {
         return this.nearByDevices;
     }
 

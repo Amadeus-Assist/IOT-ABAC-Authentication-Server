@@ -54,10 +54,10 @@ class IotabacserverApplicationTests {
     @Test
     void updatePolicy() {
         AuthzMapper mapper = LocalBeanFactory.getBean(AuthzMapper.class);
-        String policyRef = "door_sample";
+        String policyRef = "door_columbia_seas_office";
         String contents = null;
         try {
-            File file = ResourceUtils.getFile("classpath:samples\\door_sample.txt");
+            File file = ResourceUtils.getFile("classpath:samples\\door_columbia_seas_office.txt");
             contents = Files.readString(file.toPath());
         } catch (IOException e) {
             e.printStackTrace();
@@ -87,7 +87,7 @@ class IotabacserverApplicationTests {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        UserAttrsPojo pojo = new UserAttrsPojo(userId, attrs);
+        UserAttrsPojo pojo = new UserAttrsPojo(userId, "123456", attrs);
         mapper.insertUserAttrs(pojo);
     }
 
@@ -102,7 +102,7 @@ class IotabacserverApplicationTests {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        UserAttrsPojo pojo = new UserAttrsPojo(userId, attrs);
+        UserAttrsPojo pojo = new UserAttrsPojo(userId, "123456", attrs);
         mapper.updateUserAttrs(pojo);
     }
 

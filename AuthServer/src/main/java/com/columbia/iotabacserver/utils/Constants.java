@@ -4,7 +4,7 @@ public class Constants {
     public final static String TRUE = "true";
     public final static String FALSE = "false";
     public final static String INVALID_USER_INFO = "invalid user info";
-    public final static String INVALID_ACCESS_REQUEST = "invalid access request";
+    public final static String INVALID_ACCESS_REQUEST_INFO = "invalid access request info";
     public final static String INVALID_DEV_INFO = "invalid device info";
     public final static String INVALID_DEV_REG_INFO = "invalid device register info";
     public final static String DEV_ALREADY_REG = "device already registered";
