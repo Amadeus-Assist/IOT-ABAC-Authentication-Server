@@ -1,0 +1,25 @@
+[
+    {
+        "key": "rule_1",
+        "content": [
+            "sub_attr := sql_query(\"abac\", \"SELECT attrs FROM user_attrs WHERE user_id = ?\", [input.sub.id])",
+            "sub_attr.university == \"columbia university\""
+        ]
+    },{
+        "key": "rule_2",
+        "content": [
+            "sub_attr := sql_query(\"abac\", \"SELECT attrs FROM user_attrs WHERE user_id = ?\", [input.sub.id])",
+            "roles := [\"professor\", \"student\"]",
+            "roles[_] == sub_attr.role",
+            "clock_now := time.clock([time.now_ns(), \"America/New_York\"])",
+            "clock_now[0] >= 6",
+            "clock_now[0] < 20"
+        ]
+    },{
+        "key": "rule_2",
+        "content": [
+            "sub_attr := sql_query(\"abac\", \"SELECT attrs FROM user_attrs WHERE user_id = ?\", [input.sub.id])",
+            "sub_attr.role == \"administrator\""
+        ]
+    }
+]

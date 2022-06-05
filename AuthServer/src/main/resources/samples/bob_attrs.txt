@@ -1,0 +1,7 @@
+{
+    "id": "bob_6842",
+    "university": "columbia university",
+    "school": "columbia_engineering",
+    "uni": "bob145",
+    "role": "professor"
+}

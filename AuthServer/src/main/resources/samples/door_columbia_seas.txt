@@ -1,0 +1,9 @@
+[
+    {
+        "key": "rule_3",
+        "content": [
+            "sub_attr := sql_query(\"abac\", \"SELECT attrs FROM user_attrs WHERE user_id = ?\", [input.sub.id])",
+            "sub_attr.school == \"columbia engineering\""
+        ]
+    }
+]

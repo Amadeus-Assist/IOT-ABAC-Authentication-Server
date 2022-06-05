@@ -1,0 +1,16 @@
+[
+    {
+        "key": "rule_2",
+        "content": [
+            "sub_attr := sql_query(\"abac\", \"SELECT attrs FROM user_attrs WHERE user_id = ?\", [input.sub.id])",
+            "sub_attr.role == \"student\"",
+            "sub_attr.instructor_uni == \"bob145\""
+        ]
+    },{
+        "key": "rule_2",
+        "content": [
+            "sub_attr := sql_query(\"abac\", \"SELECT attrs FROM user_attrs WHERE user_id = ?\", [input.sub.id])",
+            "sub_attr.uni == \"bob145\""
+        ]
+    }
+]

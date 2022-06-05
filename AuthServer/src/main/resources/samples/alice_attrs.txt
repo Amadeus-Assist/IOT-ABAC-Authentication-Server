@@ -1,0 +1,8 @@
+{
+    "id": "alice_5832",
+    "university": "columbia university",
+    "school": "columbia engineering",
+    "uni": "alice593",
+    "role": "student",
+    "instructor_uni": "bob145"
+}
