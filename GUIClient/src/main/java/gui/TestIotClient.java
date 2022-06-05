@@ -68,7 +68,6 @@ public class TestIotClient {
     }
 
     public void run() {
-//        this.loggerTextArea.setFocusable(false);
         this.mainFrame.setContentPane(this.mainPanel);
         this.mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.mainFrame.pack();
@@ -265,8 +264,6 @@ public class TestIotClient {
     }
 
     public static void main(String[] args) {
-//        args = new String[1];
-//        args[0] = "6200";
         if (args.length < 1 || !args[0].matches(Constants.PORT_REGEX)) {
             throw new RuntimeException("Invalid launch args, please provide the port number (6200-6209)");
         }

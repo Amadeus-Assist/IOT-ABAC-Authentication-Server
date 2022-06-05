@@ -27,27 +27,10 @@ type memberRef struct {
 
 // func run will be responsible for setting up db connections, routers etc
 func run() error {
-	//// I'm used to working with postgres, but feel free to use any db you like. You just have to change the driver
-	//// I'm not going to cover how to create a database here but create a database
-	//// and call it something along the lines of "weight tracker"
-	//connectionString := "root:123456@tcp(localhost:3306)/abac"
-	//
-	//// setup database connection
-	//db, err := setupDatabase(connectionString)
-	//
-	//if err != nil {
-	//	return err
-	//}
-	//
-	//defer func(db *sql.DB) {
-	//	err := db.Close()
-	//	if err != nil {
-	//
-	//	}
-	//}(db)
 
 	var context opa_server_config.OPAServerContext
 
+	// prepare the context for server
 	if err := opa_server_config.PrepareServerSetting(&context); err != nil {
 		fmt.Printf("fail to set up OPA server config, err: %v\n", err)
 		return err

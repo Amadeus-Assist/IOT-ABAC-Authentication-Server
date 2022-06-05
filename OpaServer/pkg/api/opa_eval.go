@@ -18,6 +18,7 @@ func NewOpaEvalService() OpaEvalService {
 }
 
 func (opa *opaEvalService) Eval(input map[string]interface{}, policy string) (string, error) {
+	// setup input and policy for rego instance then evaluate
 	regoInst := rego.New(
 		rego.Query("data.authz.policy.PERMIT"),
 		rego.Module("authz.rego", policy),

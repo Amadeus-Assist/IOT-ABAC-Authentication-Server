@@ -60,26 +60,6 @@ public class AuthServiceImpl implements AuthService {
 
         // send access request and policy to opa server for evaluation
         RestTemplate restTemplate = new RestTemplate();
-//        restTemplate.setErrorHandler(new ResponseErrorHandler() {
-//            @Override
-//            public boolean hasError(ClientHttpResponse response) throws IOException {
-//                return response.getStatusCode().series() == HttpStatus.Series.CLIENT_ERROR
-//                        || response.getStatusCode().series() == HttpStatus.Series.SERVER_ERROR;
-//            }
-//
-//            @Override
-//            public void handleError(ClientHttpResponse response) throws IOException {
-//                if (response.getStatusCode() == HttpStatus.BAD_REQUEST) {
-//                    String bodyStr = new String(response.getBody().readAllBytes());
-//                    logger.info("Bad request response from opa server: {}", bodyStr);
-//                    throw new BadRequestException();
-//                }
-//
-//                // handle other possibilities, then use the catch all...
-//
-//                throw new UnexpectedHttpException(response.getStatusCode());
-//            }
-//        });
 
         //you can create and edit header
         HttpHeaders header = new HttpHeaders();

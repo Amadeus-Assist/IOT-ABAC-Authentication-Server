@@ -18,6 +18,7 @@ type queriedAttributes struct {
 	attrs string
 }
 
+// PrepareRego defines sql_query and api_get_obj_term function
 func PrepareRego(context *OPAServerContext) {
 	rego.RegisterBuiltin3(&rego.Function{
 		Name: "sql_query",
@@ -27,9 +28,11 @@ func PrepareRego(context *OPAServerContext) {
 		),
 	}, func(_ rego.BuiltinContext, datasourceTerm, tempTerm, paramsTerm *ast.Term) (*ast.Term, error) {
 		start := time.Now().UnixMicro()
+		// start timer to count its cost
 		var funcArgs = []*ast.Term{tempTerm, paramsTerm}
 		cacheKey := buildCacheKey("sql_query", funcArgs)
 		if context.FuncUseCache {
+			// if use function cache, check cache first
 			cacheRes, prs := checkCache(context.FuncCache, cacheKey)
 			if prs {
 				return &cacheRes, nil
@@ -92,15 +95,16 @@ func PrepareRego(context *OPAServerContext) {
 			fmt.Printf("Parse term error, source: %v, err: %v\n", attributes.attrs, err)
 			return nil, nil
 		}
-		//fmt.Printf("res term: %v\n", astTerm)
 
 		if context.FuncUseCache {
+			// if used function cache, push to result to cache
 			err = pushToCache(context.FuncCache, cacheKey, astTerm, context.FuncCacheTTL)
 			if err != nil {
 				fmt.Printf("push to cache error: %v\n", err)
 			}
 		}
 
+		// calculate function cost then use EWMA calculate avg
 		funcKey := "sql_query(" + string(datasource) + ")"
 		elapse := time.Now().UnixMicro() - start
 		oldElapse, prsE := context.FuncTimeCounter[funcKey]

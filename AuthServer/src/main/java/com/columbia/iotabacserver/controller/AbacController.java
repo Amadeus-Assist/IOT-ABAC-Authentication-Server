@@ -29,10 +29,12 @@ public class AbacController {
     @Resource
     private AuthenticationService authenticationService;
 
+    // url to receive evaluate request from client
     @PostMapping(value = "/authz/eval", produces = MediaType.APPLICATION_JSON_VALUE, consumes =
             MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public AuthResponse postEval(@RequestBody AuthRequest request) {
+        // check necessary info not empty and authentication info correct
         if (!StringUtils.hasText(request.getSubUsername()) || !StringUtils.hasText(request.getSubUserPwd())
                 || !authenticationService.userAuthenticateCheck(request.getSubUsername(), request.getSubUserPwd())) {
             logger.info("invalid user authentication info");
@@ -52,6 +54,7 @@ public class AbacController {
 
         boolean pass = false;
         try {
+            // assemble the real access request and forward to OpaServer
             pass = authService.opaEval(authService.assembleAccessRequest(request.getSubUsername(),
                     request.getObjDevId(), request.getAction(), request.getEnvInfo()));
         } catch (JsonProcessingException e) {
@@ -64,6 +67,7 @@ public class AbacController {
         return new AuthResponse(Constants.FALSE);
     }
 
+    // handle device registration
     @PostMapping(value = "/authz/register/dev", produces = MediaType.APPLICATION_JSON_VALUE, consumes =
             MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
@@ -84,6 +88,8 @@ public class AbacController {
         return new DevRegResponse(token);
     }
 
+
+    // handle device login
     @PostMapping(value = "authz/login/dev", produces = MediaType.APPLICATION_JSON_VALUE, consumes =
             MediaType.APPLICATION_JSON_VALUE)
     public void postDevLogin(@RequestBody DevLoginRequest request) {
@@ -94,6 +100,8 @@ public class AbacController {
         }
     }
 
+
+    // handle user registration
     @PostMapping(value = "authz/register/user", produces = MediaType.APPLICATION_JSON_VALUE, consumes =
             MediaType.APPLICATION_JSON_VALUE)
     public void postUserRegister(@RequestBody UserRegRequest request) {
@@ -111,6 +119,8 @@ public class AbacController {
         authenticationService.registerUser(request.getUsername(), request.getPassword(), request.getAttrs());
     }
 
+
+    // handle user login
     @PostMapping(value = "authz/login/user", produces = MediaType.APPLICATION_JSON_VALUE, consumes =
             MediaType.APPLICATION_JSON_VALUE)
     public void postUserLogin(@RequestBody UserLoginRequest request) {
@@ -121,6 +131,8 @@ public class AbacController {
         }
     }
 
+
+    // handle action query request
     @PostMapping(value = "authz/query-actions/dev", produces = MediaType.APPLICATION_JSON_VALUE, consumes =
             MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody

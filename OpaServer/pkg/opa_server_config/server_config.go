@@ -41,6 +41,7 @@ type ApplicationConfig struct {
 	} `yaml:"datasource"`
 }
 
+// parseConfig used to parse the application.yml configuration file
 func parseConfig(context *OPAServerContext) error {
 	rootPath := utils.GetProjectRoot()
 	context.ProjectRootPath = rootPath

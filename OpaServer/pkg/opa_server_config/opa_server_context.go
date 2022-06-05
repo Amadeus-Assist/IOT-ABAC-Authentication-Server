@@ -6,6 +6,7 @@ import (
 )
 
 type OPAServerContext struct {
+	// context for server
 	SqlDB             map[string]*sql.DB
 	FuncUseCache      bool
 	FuncCache         gcache.Cache

@@ -34,21 +34,12 @@ type ruleWithCost struct {
 	cost    int64
 }
 
+// Eval handle evaluation requests
 func (s *Server) Eval() gin.HandlerFunc {
 	return func(context *gin.Context) {
 		context.Header("Content-Type", "application/json")
 
 		var newEvalRequest api.OpaEvalRequest
-
-		//bodyJson, err := ioutil.ReadAll(context.Request.Body);
-
-		//if err != nil {
-		//	log.Printf("err: %v\n", err)
-		//	context.JSON(http.StatusBadRequest, nil)
-		//	return
-		//}
-
-		//fmt.Printf("Request: %v\n", bodyJson)
 
 		err := context.ShouldBindJSON(&newEvalRequest)
 
@@ -63,6 +54,7 @@ func (s *Server) Eval() gin.HandlerFunc {
 			return
 		}
 
+		// retrieve input map and assemble policy associated to the request
 		policy, input, err := s.preprocessEvalRequest(&newEvalRequest)
 		if err != nil {
 			log.Printf("handler error: %v\n", err)
@@ -73,6 +65,7 @@ func (s *Server) Eval() gin.HandlerFunc {
 			return
 		}
 
+		// call service function for evaluation
 		decision, err := s.opaEvalService.Eval(input, policy)
 
 		if err != nil {
@@ -100,12 +93,14 @@ func (s *Server) preprocessEvalRequest(evalRequest *api.OpaEvalRequest) (string,
 
 	var inputMap map[string]interface{}
 
+	// parse the input json to map
 	err := json.Unmarshal([]byte(evalRequest.AccessRequest), &inputMap)
 
 	if err != nil {
 		return "", nil, errors.New("invalid access request format")
 	}
 
+	// check sub, obj, action fields all exist
 	objInterface, prs := inputMap[utils.OBJECT]
 	if !prs {
 		return "", nil, errors.New("invalid access request format")
@@ -123,6 +118,7 @@ func (s *Server) preprocessEvalRequest(evalRequest *api.OpaEvalRequest) (string,
 	}
 	action := actionInterface.(string)
 
+	// query hierarchy
 	hierarchy, err := s.queryHierarchy(objId, action)
 	if err != nil {
 		return "", nil, errors.New("unable to get obj hierarchy")
@@ -144,6 +140,7 @@ func (s *Server) preprocessEvalRequest(evalRequest *api.OpaEvalRequest) (string,
 	}
 
 	if !getStoredPolicySucc {
+		// assemble policy
 		hierarchies := strings.Split(hierarchy, utils.HIERARCHY_SEP)
 
 		assembledPolicy, err := s.assemblePolicy(hierarchies)
@@ -220,12 +217,12 @@ func (s *Server) assemblePolicy(hierarchies []string) (string, error) {
 		return "", errors.New("unable to assemble policy")
 	}
 
+	// map to store the calculated rule cost
 	policyMap := make(map[string][]*ruleWithCost)
 
 	policyQueryTemp := strings.Replace(utils.POLICY_QUERY_TEMP, utils.TABLENAME, utils.POLICY_REPOSITORY_TABLE, 1)
 	for _, hie := range hierarchies {
 		res, err := sqlConn.Query(policyQueryTemp, hie)
-		//fmt.Printf("query temp: %v, params: %v\n", policyQueryTemp, hie)
 
 		if err != nil {
 			fmt.Printf("Unable to execute sql_query, template: %v, params: %v, err: %v\n",
@@ -284,6 +281,7 @@ func (s *Server) assemblePolicy(hierarchies []string) (string, error) {
 }
 
 func (s *Server) parseMapToRego(policyMap map[string][]*ruleWithCost) string {
+	// assemble real rego policy from its json format
 	var sb strings.Builder
 	header := `package authz.policy
 
@@ -293,6 +291,7 @@ PERMIT{
 `
 	sb.WriteString(header)
 
+	// sort the policy with its cost
 	sortedKeys := s.sortPolicyKey(policyMap)
 
 	for _, key := range sortedKeys {
