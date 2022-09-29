@@ -34,6 +34,7 @@ type ApplicationConfig struct {
 		HieCacheTTL      int64 `yaml:"hie_cache_ttl"`
 		HieMaxCacheEntry int   `yaml:"hie_max_cache_entry"`
 	} `yaml:"hie_cache"`
+	RuleReorder bool `yaml:"rule_reorder"`
 	Datasource []struct {
 		DriveName string `yaml:"drive_name"`
 		Name      string `yaml:"name"`
@@ -76,6 +77,8 @@ func parseConfig(context *OPAServerContext) error {
 	}else {
 		context.HieUseCache = false
 	}
+
+	context.RuleReorder = applicationConfig.RuleReorder
 
 	if context.SqlDB == nil {
 		context.SqlDB = make(map[string]*sql.DB)

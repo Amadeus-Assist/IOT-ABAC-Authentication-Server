@@ -1,5 +1,6 @@
 package com.columbia.iotabacserver;
 
+import com.columbia.iotabacserver.controller.AbacController;
 import com.columbia.iotabacserver.dao.mapper.AuthzMapper;
 import com.columbia.iotabacserver.dao.model.DevCheckPojo;
 import com.columbia.iotabacserver.dao.model.ObjectHierarchyPojo;
@@ -8,6 +9,8 @@ import com.columbia.iotabacserver.dao.model.UserAttrsPojo;
 import com.columbia.iotabacserver.pojo.jackson_model.OpaEvalRequestBody;
 import com.columbia.iotabacserver.pojo.jackson_model.OpaEvalRequestBodyOld;
 import com.columbia.iotabacserver.pojo.jackson_model.RuleJsonModel;
+import com.columbia.iotabacserver.pojo.request.AuthRequest;
+import com.columbia.iotabacserver.pojo.response.AuthResponse;
 import com.columbia.iotabacserver.pojo.response.OpaEvalResponse;
 import com.columbia.iotabacserver.utils.Utils;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -270,5 +273,25 @@ class IotabacserverApplicationTests {
     @Test
     void testGenerateToken(){
         System.out.println(Utils.generateNewToken());
+    }
+
+    @Test
+    void testEval() throws JsonProcessingException {
+        AbacController controller = LocalBeanFactory.getBean(AbacController.class);
+        // get and parse the access request
+        String arFile = "classpath:samples\\new_access_request.txt";
+        String arContent = null;
+        try {
+            File file = ResourceUtils.getFile(arFile);
+            arContent = Files.readString(file.toPath());
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException();
+        }
+
+        ObjectMapper mapper = new ObjectMapper();
+        AuthRequest request = mapper.readValue(arContent, AuthRequest.class);
+        AuthResponse response = controller.postEval(request);
+        System.out.printf("decision: %s\n", response.getDecision());
     }
 }

@@ -1,0 +1,9 @@
+[
+    {
+        "key": "rule_1",
+        "content": [
+            "sub_attr := sql_query(\"abac\", \"SELECT attrs FROM user_attrs WHERE user_id = ?\", [input.sub.id])",
+            "sub_attr.class == \"0\""
+        ]
+    }
+]

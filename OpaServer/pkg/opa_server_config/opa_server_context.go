@@ -19,4 +19,5 @@ type OPAServerContext struct {
 	HierarchyCache    gcache.Cache
 	MaxHieCacheEntry  int
 	HieCacheTTL       int64
+	RuleReorder       bool
 }
