@@ -207,7 +207,7 @@ func (s *Server) queryHierarchy(objId string, action string) (string, error) {
 
 func (s *Server) assemblePolicy(hierarchies []string) (string, error) {
 	if len(hierarchies) == 0 {
-		fmt.Printf("empty hierarchy")
+		fmt.Printf("empty hierarchy\n")
 		return "", errors.New("unable to assemble policy")
 	}
 
@@ -239,7 +239,7 @@ func (s *Server) assemblePolicy(hierarchies []string) (string, error) {
 				return "", errors.New("unable to assemble policy")
 			}
 		} else {
-			fmt.Printf("empty query result\n")
+			fmt.Printf("empty query result, hie: %v\n", hie)
 			res.Close()
 			return "", errors.New("unable to assemble policy")
 		}
@@ -292,7 +292,17 @@ PERMIT{
 	sb.WriteString(header)
 
 	// sort the policy with its cost
-	sortedKeys := s.sortPolicyKey(policyMap)
+	sortedKeys := make([]string, len(policyMap))
+	if s.context.RuleReorder {
+		sortedKeys = s.sortPolicyKey(policyMap)
+	}else{
+		i := 0
+		for key := range policyMap{
+			sortedKeys[i] = key
+			i++
+		}
+		sort.Sort(sort.StringSlice(sortedKeys))
+	}
 
 	for _, key := range sortedKeys {
 		sb.WriteString(fmt.Sprintf("\t%v\n", key))

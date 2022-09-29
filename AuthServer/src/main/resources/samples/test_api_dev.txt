@@ -1,0 +1,9 @@
+[
+    {
+        "key": "rule_1",
+        "content": [
+            "sub_attr := api_get_obj_term(\"http://localhost:8082\", [\"api_test_sub\", input.sub.id])",
+            "sub_attr.class == \"0\""
+        ]
+    }
+]

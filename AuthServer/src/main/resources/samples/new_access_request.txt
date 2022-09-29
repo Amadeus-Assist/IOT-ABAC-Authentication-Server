@@ -1,0 +1,8 @@
+{
+    "sub_username": "alice_5832",
+    "sub_user_password": "123456",
+    "obj_dev_id": "door_columbia_seas_702",
+    "obj_token": "123456",
+    "action": "open",
+    "env_info": "{}"
+}

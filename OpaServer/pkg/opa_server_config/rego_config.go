@@ -83,7 +83,7 @@ func PrepareRego(context *OPAServerContext) {
 				return nil, nil
 			}
 		} else {
-			fmt.Printf("empty query result\n")
+			fmt.Printf("empty query result, temp: %v, param: %v\n", string(temp), paramsSlice[0])
 			return nil, nil
 		}
 

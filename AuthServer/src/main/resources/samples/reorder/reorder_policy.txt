@@ -1,0 +1,15 @@
+[
+    {
+        "key": "rule_1",
+        "content": [
+            "resp := api_get_obj_term(\"http://localhost:8082\", [\"reorder_test\", input.env.count])",
+            "resp.allowed == true"
+        ]
+    }, {
+        "key": "rule_2",
+        "content": [
+            "resp := api_get_obj_term(\"http://localhost:8083\", [\"reorder_test\", input.env.count])",
+            "resp.allowed == true"
+        ]
+    }
+]

@@ -58,7 +58,7 @@ public class AbacController {
             pass = authService.opaEval(authService.assembleAccessRequest(request.getSubUsername(),
                     request.getObjDevId(), request.getAction(), request.getEnvInfo()));
         } catch (JsonProcessingException e) {
-            logger.info("cannot assemble access request");
+            logger.info("cannot assemble access request: {}", e.toString());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Constants.INVALID_ACCESS_REQUEST_INFO);
         }
         if (pass) {

@@ -53,4 +53,9 @@ public interface AuthzMapper {
 
     @Select("SELECT dev_id AS devId, attrs FROM dev_info WHERE dev_id=#{devId} LIMIT 1")
     DevAttrsPojo findDevAttrs(String devId);
+
+    @Insert("INSERT INTO dev_info(dev_id, dev_type, actions, token, attrs) VALUES(#{devId}, #{devType}, #{actions}, " +
+            "#{token}, #{attrs})")
+    @Options(useGeneratedKeys = true)
+    void insertDevInfoFull(DevInfoPojo pojo);
 }
