@@ -66,6 +66,44 @@ public class AbacController {
         }
         return new AuthResponse(Constants.FALSE);
     }
+    //handle secure evaluation
+    public AuthResponse postEvalSecure(@RequestBody AuthRequestSecure request) {
+        // check necessary info not empty and authentication info correct
+        if (!StringUtils.hasText(request.getSubUsername()) || !StringUtils.hasText(request.getSubUserPwd())
+                || !authenticationService.userAuthenticateCheck(request.getSubUsername(), request.getSubUserPwd())) {
+            logger.info("invalid user authentication info");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Constants.INVALID_USER_INFO);
+        }
+
+        if (!StringUtils.hasText(request.getObjDevId()) || !StringUtils.hasText(request.getObjToken())
+                || !authenticationService.deviceAuthenticateCheck(request.getObjDevId(), request.getObjToken())) {
+            logger.info("invalid device authentication info");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Constants.INVALID_DEV_INFO);
+        }
+
+        if (!StringUtils.hasText(request.getAction()) || !StringUtils.hasText(request.getEnvInfo())) {
+            logger.info("empty access request");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Constants.INVALID_ACCESS_REQUEST_INFO);
+        }
+        if(!StringUtils.hasText(request.getAuthDB()) || !authenticationService.dbAuthorizeCheck(request.getAuthDB())) { 
+            logger.info("cannot gain access to DB");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Constants.INVALID_DB_AUTHORIZATION);
+        }
+
+        boolean pass = false;
+        try {
+            // assemble the real access request and forward to OpaServer
+            pass = authService.opaEval(authService.assembleAccessRequest(request.getSubUsername(),
+                    request.getObjDevId(), request.getAction(), request.getEnvInfo()));
+        } catch (JsonProcessingException e) {
+            logger.info("cannot assemble access request: {}", e.toString());
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Constants.INVALID_ACCESS_REQUEST_INFO);
+        }
+        if (pass) {
+            return new AuthResponse(Constants.TRUE);
+        }
+        return new AuthResponse(Constants.FALSE);
+    }
 
     // handle device registration
     @PostMapping(value = "/authz/register/dev", produces = MediaType.APPLICATION_JSON_VALUE, consumes =

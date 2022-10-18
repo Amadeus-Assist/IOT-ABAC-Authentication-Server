@@ -12,4 +12,6 @@ public class Constants {
     public final static String USER_ALREADY_REG = "user already registered";
     public final static String INVALID_USER_AUTHENTICATION = "invalid user authentication info";
     public final static String INVALID_DEV_AUTHENTICATION = "invalid device authentication info";
+    public final static String INVALID_DB_AUTHORIZATION = "invalid database authorization";
+    public final static String NEVER = "never";
 }

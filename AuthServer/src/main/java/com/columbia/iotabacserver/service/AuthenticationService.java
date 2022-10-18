@@ -20,4 +20,7 @@ public interface AuthenticationService {
     void registerUser(String username, String password, String attrs);
 
     String queryDevActions(String devId);
+
+    //use to check DB authorization info
+    boolean dbAuthorizeCheck(String dbAuthInfo);
 }

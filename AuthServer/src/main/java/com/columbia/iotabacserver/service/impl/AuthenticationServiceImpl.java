@@ -3,6 +3,7 @@ package com.columbia.iotabacserver.service.impl;
 import com.columbia.iotabacserver.dao.mapper.AuthzMapper;
 import com.columbia.iotabacserver.dao.model.*;
 import com.columbia.iotabacserver.service.AuthenticationService;
+import com.columbia.iotabacserver.utils.Constants;
 import com.columbia.iotabacserver.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,5 +66,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         return StringUtils.hasText(pojo.getActions()) ? pojo.getActions() : "";
     }
 
+    @Override 
+    public boolean dbAuthorizeCheck(String dbAuthInfo) {
+        boolean flag = true;
+        flag &= !dbAuthInfo.equals(Constants.NEVER);
+        return flag;
+    }
 
 }
