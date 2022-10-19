@@ -13,6 +13,10 @@ import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 
+import java.time.LocalDate;
+import java.time.Period;
+import java.util.HashMap;
+
 @Service
 public class AuthenticationServiceImpl implements AuthenticationService {
     private static final Logger logger = LoggerFactory.getLogger(AuthenticationServiceImpl.class);
@@ -67,9 +71,25 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override 
-    public boolean dbAuthorizeCheck(String dbAuthInfo) {
+    public boolean dbAuthorizeCheck(String dbAuthInfo, String[] requiredDB, String userId) {
+        DBAuthInfoPojo authInfo = new DBAuthInfoPojo(dbAuthInfo);
+        HashMap<String, String> dbAuthInfoMap = authInfo.getDbAuthInfoMap();
         boolean flag = true;
-        flag &= !dbAuthInfo.equals(Constants.NEVER);
+        String secureDBName = "user_attrs";
+        for(String db:requiredDB){
+            if(db.equals(secureDBName)) {
+                DBAccessPermPojo pojo = mapper.findPermitDate(userId);
+                System.out.println("found record: " + pojo.getPermDate());
+                if(Period.between(LocalDate.parse(pojo.getPermDate()), LocalDate.now()).getDays() < Constants.DAY_LIMIT) continue;
+            }
+            if(!dbAuthInfoMap.containsKey(db) || dbAuthInfoMap.get(db).equals(Constants.NEVER)) {
+                flag = false;
+            }
+            // TODO: record datetime in DB
+            // else if(dbAuthInfoMap.get(db).equals(Constants.ALWAYS)) {
+            //     
+            // }
+        }
         return flag;
     }
 

@@ -14,4 +14,6 @@ public class Constants {
     public final static String INVALID_DEV_AUTHENTICATION = "invalid device authentication info";
     public final static String INVALID_DB_AUTHORIZATION = "invalid database authorization";
     public final static String NEVER = "never";
+    public final static String ALWAYS = "always";
+    public final static Integer DAY_LIMIT = 2;
 }

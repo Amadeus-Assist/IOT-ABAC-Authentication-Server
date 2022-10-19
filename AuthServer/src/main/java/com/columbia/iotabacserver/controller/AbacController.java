@@ -85,7 +85,9 @@ public class AbacController {
             logger.info("empty access request");
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Constants.INVALID_ACCESS_REQUEST_INFO);
         }
-        if(!StringUtils.hasText(request.getAuthDB()) || !authenticationService.dbAuthorizeCheck(request.getAuthDB())) { 
+        
+        String[] requiredDB = new String[]{"user_attrs"}; //load the required DBs
+        if(!StringUtils.hasText(request.getAuthDB()) || !authenticationService.dbAuthorizeCheck(request.getAuthDB(), requiredDB, request.getSubUsername())) { 
             logger.info("cannot gain access to DB");
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Constants.INVALID_DB_AUTHORIZATION);
         }

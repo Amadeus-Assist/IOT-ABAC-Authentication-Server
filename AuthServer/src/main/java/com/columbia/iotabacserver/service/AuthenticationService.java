@@ -22,5 +22,5 @@ public interface AuthenticationService {
     String queryDevActions(String devId);
 
     //use to check DB authorization info
-    boolean dbAuthorizeCheck(String dbAuthInfo);
+    boolean dbAuthorizeCheck(String dbAuthInfo, String[] requiredDB, String userId);
 }

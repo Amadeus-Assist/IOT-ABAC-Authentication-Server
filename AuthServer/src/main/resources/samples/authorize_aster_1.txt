@@ -5,5 +5,5 @@
     "obj_token": "123456",
     "action": "read",
     "env_info": "{}",
-    "auth_db": "once"
+    "auth_db": "user_attrs:never"
 }

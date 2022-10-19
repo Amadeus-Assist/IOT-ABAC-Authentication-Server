@@ -58,4 +58,7 @@ public interface AuthzMapper {
             "#{token}, #{attrs})")
     @Options(useGeneratedKeys = true)
     void insertDevInfoFull(DevInfoPojo pojo);
+
+    @Select("SELECT user_id AS userId, secure_db_date AS permDate FROM db_access WHERE user_id=#{userId} LIMIT 1")
+    DBAccessPermPojo findPermitDate(String userId);
 }
