@@ -18,12 +18,12 @@ type authRequest struct {
 	AccessRequest string `json:"access_request"`
 }
 
-func main()  {
+func main() {
 	authUrl := "http://localhost:8080/authz"
 
-	arContentByte, err := ioutil.ReadFile(filepath.Join(GetProjectRoot(),"access_request/access_request_alice.txt"))
-	if err != nil{
-		fmt.Printf("error read file， err: %v\n", err)
+	arContentByte, err := ioutil.ReadFile(filepath.Join(GetProjectRoot(), "access_request/access_request_alice.txt"))
+	if err != nil {
+		fmt.Printf("error read file, err: %v\n", err)
 		return
 	}
 	arContent := string(arContentByte)
@@ -32,7 +32,7 @@ func main()  {
 
 	jsonBytes, err := json.Marshal(authReq)
 
-	if err!=nil{
+	if err != nil {
 		fmt.Printf("unable to marshal request: %v\n", string(jsonBytes))
 		return
 	}
@@ -48,7 +48,7 @@ func main()  {
 	//client
 
 	resp, err := http.Post(authUrl, "application/json", bytes.NewBuffer(jsonBytes))
-	if err != nil{
+	if err != nil {
 		fmt.Printf("error http post, err: %v\n", err)
 		return
 	}

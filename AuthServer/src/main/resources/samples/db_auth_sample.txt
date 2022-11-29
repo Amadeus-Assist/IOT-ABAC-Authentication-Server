@@ -1,0 +1,5 @@
+{
+    "valid": true,
+    "db_auth": "user_attrs:once",
+    "db_password": "table_password"
+}

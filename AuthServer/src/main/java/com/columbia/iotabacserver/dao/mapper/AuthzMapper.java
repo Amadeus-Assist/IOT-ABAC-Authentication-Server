@@ -59,6 +59,15 @@ public interface AuthzMapper {
     @Options(useGeneratedKeys = true)
     void insertDevInfoFull(DevInfoPojo pojo);
 
-    @Select("SELECT user_id AS userId, secure_db_date AS permDate FROM db_access WHERE user_id=#{userId} LIMIT 1")
-    DBAccessPermPojo findPermitDate(String userId);
+    @Select("SELECT user_id AS userId, db_access_date AS permDate FROM db_access WHERE user_id=#{userId} LIMIT 1")
+    DBAccessPermPojo findAccessDate(String userId);
+
+    @Select("SELECT user_id AS userId, db_deny_date AS permDate FROM db_access WHERE user_id=#{userId} LIMIT 1")
+    DBAccessPermPojo findDenyDate(String userId);
+
+    @Update("UPDATE db_access SET db_access_date=#{pojo.permDate} WHERE user_id=#{pojo.userId}")
+    void updateSecureDBAllow(@Param("pojo") DBAccessPermPojo pojo);
+
+    @Update("UPDATE db_access SET db_deny_date=#{pojo.permDate} WHERE user_id=#{pojo.userId}")
+    void updateSecureDBDeny(@Param("pojo") DBAccessPermPojo pojo);
 }

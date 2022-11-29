@@ -1,9 +1,10 @@
 {
-    "sub_username": "Aster",
+    "sub_username": "Bob",
     "sub_user_password": "123",
     "obj_dev_id": "api_dev_1",
     "obj_token": "123456",
     "action": "read",
     "env_info": "{}",
-    "auth_db": "user_attrs:never"
+    "secured": "true",
+    "dbAuth": "user_attrs:always"
 }

@@ -18,4 +18,5 @@ public class DBAccessPermPojo implements Serializable {
 
     String userId;
     String permDate;
+    int permLength;
 }

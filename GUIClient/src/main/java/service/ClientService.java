@@ -7,6 +7,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import pojo.UserAccessRequest;
+import pojo.UserAccessRequestSecure;
 import utils.Utils;
 
 import java.io.IOException;
@@ -59,7 +60,11 @@ public class ClientService {
         UserAccessRequest userAccessRequest = new UserAccessRequest(username, password, targetDev, action);
         return Utils.mapper.writerWithDefaultPrettyPrinter().writeValueAsString(userAccessRequest);
     }
-
+    public static String generateSecureAccessRequestBodyFromUser(String username, String password,
+                                                           String targetDev, String action, String secured, String dbauth) throws JsonProcessingException {
+        UserAccessRequestSecure userAccessRequest = new UserAccessRequestSecure(username, password, targetDev, action, secured, dbauth);
+        return Utils.mapper.writerWithDefaultPrettyPrinter().writeValueAsString(userAccessRequest);
+    }
     public static CloseableHttpResponse sendHttpPostRequest(CloseableHttpClient client, String url, String body) throws IOException {
         HttpPost post = new HttpPost(url);
         StringEntity entity = new StringEntity(body);

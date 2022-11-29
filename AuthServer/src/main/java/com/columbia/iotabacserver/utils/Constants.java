@@ -13,7 +13,9 @@ public class Constants {
     public final static String INVALID_USER_AUTHENTICATION = "invalid user authentication info";
     public final static String INVALID_DEV_AUTHENTICATION = "invalid device authentication info";
     public final static String INVALID_DB_AUTHORIZATION = "invalid database authorization";
-    public final static String NEVER = "never";
-    public final static String ALWAYS = "always";
+    public final static String ALLOW = "allow";
+    public final static String DENY = "deny";
+    public final static String ONCE = "once";
     public final static Integer DAY_LIMIT = 2;
+    public final static String DK = "dbauth";
 }

@@ -25,4 +25,5 @@ public class AccessResponse {
                 "decision='" + decision + '\'' +
                 '}';
     }
+    public boolean dbAuthRequirement = false;
 }

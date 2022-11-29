@@ -11,6 +11,7 @@ import com.columbia.iotabacserver.pojo.jackson_model.OpaEvalRequestBodyOld;
 import com.columbia.iotabacserver.pojo.jackson_model.RuleJsonModel;
 import com.columbia.iotabacserver.pojo.request.AuthRequest;
 import com.columbia.iotabacserver.pojo.request.AuthRequestSecure;
+import com.columbia.iotabacserver.pojo.request.DbAuthRequest;
 import com.columbia.iotabacserver.pojo.response.AuthResponse;
 import com.columbia.iotabacserver.pojo.response.OpaEvalResponse;
 import com.columbia.iotabacserver.utils.Utils;
@@ -308,9 +309,9 @@ class IotabacserverApplicationTests {
             e.printStackTrace();
             throw new RuntimeException();
         }
-
         ObjectMapper mapper = new ObjectMapper();
         AuthRequestSecure request = mapper.readValue(arContent, AuthRequestSecure.class);
+        // 2nd time req
         AuthResponse response = controller.postEvalSecure(request);
         System.out.printf("decision: %s\n", response.getDecision());
     }

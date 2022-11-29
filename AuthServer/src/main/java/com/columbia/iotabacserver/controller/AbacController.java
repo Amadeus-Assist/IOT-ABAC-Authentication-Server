@@ -1,24 +1,71 @@
 package com.columbia.iotabacserver.controller;
 
-import com.columbia.iotabacserver.pojo.request.*;
-import com.columbia.iotabacserver.pojo.response.DevRegResponse;
-import com.columbia.iotabacserver.pojo.response.QueryActionsResponse;
-import com.columbia.iotabacserver.service.AuthService;
-import com.columbia.iotabacserver.service.AuthenticationService;
-import com.columbia.iotabacserver.utils.Constants;
-import com.fasterxml.jackson.core.JsonProcessingException;
+import javax.annotation.Resource;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.*;
-import com.columbia.iotabacserver.pojo.response.AuthResponse;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import javax.annotation.Resource;
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTCreationException;
+import com.columbia.iotabacserver.pojo.request.AuthRequest;
+import com.columbia.iotabacserver.pojo.request.DbAuthRequest;
+import com.columbia.iotabacserver.pojo.request.DevLoginRequest;
+import com.columbia.iotabacserver.pojo.request.DevRegRequest;
+import com.columbia.iotabacserver.pojo.request.QueryActionsRequest;
+import com.columbia.iotabacserver.pojo.request.UserLoginRequest;
+import com.columbia.iotabacserver.pojo.request.UserRegRequest;
+import com.columbia.iotabacserver.pojo.response.AuthResponse;
+import com.columbia.iotabacserver.pojo.response.DevRegResponse;
+import com.columbia.iotabacserver.pojo.response.QueryActionsResponse;
+import com.columbia.iotabacserver.service.AuthService;
+import com.columbia.iotabacserver.service.AuthenticationService;
+import com.columbia.iotabacserver.utils.Constants;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.columbia.iotabacserver.pojo.request.AuthRequestSecure;
 
+import com.columbia.iotabacserver.controller.AbacController;
+import com.columbia.iotabacserver.dao.mapper.AuthzMapper;
+import com.columbia.iotabacserver.dao.model.DevCheckPojo;
+import com.columbia.iotabacserver.dao.model.ObjectHierarchyPojo;
+import com.columbia.iotabacserver.dao.model.PolicyPojo;
+import com.columbia.iotabacserver.dao.model.UserAttrsPojo;
+import com.columbia.iotabacserver.dao.model.DBAccessPermPojo;
+import com.columbia.iotabacserver.pojo.jackson_model.OpaEvalRequestBody;
+import com.columbia.iotabacserver.pojo.jackson_model.OpaEvalRequestBodyOld;
+import com.columbia.iotabacserver.pojo.jackson_model.RuleJsonModel;
+import com.columbia.iotabacserver.pojo.response.OpaEvalResponse;
+import com.columbia.iotabacserver.utils.Utils;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.util.ResourceUtils;
+import com.columbia.iotabacserver.utils.LocalBeanFactory;
+import org.springframework.web.client.RestTemplate;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.io.File;
+import java.nio.file.Files;
+import java.util.*;
+import java.time.LocalDate;
+import java.time.Period;
+import java.util.HashMap;
 @RestController
 public class AbacController {
     private static final Logger logger = LoggerFactory.getLogger(AbacController.class);
@@ -34,10 +81,13 @@ public class AbacController {
             MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public AuthResponse postEval(@RequestBody AuthRequest request) {
+        String[] private_table = {"user_attrs"};
+        boolean needSecureDB = needSecureDB(request, private_table);
+        System.out.println(needSecureDB);
         // check necessary info not empty and authentication info correct
         if (!StringUtils.hasText(request.getSubUsername()) || !StringUtils.hasText(request.getSubUserPwd())
                 || !authenticationService.userAuthenticateCheck(request.getSubUsername(), request.getSubUserPwd())) {
-            logger.info("invalid user authentication info");
+            logger.info("invalid user authentication info");    
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Constants.INVALID_USER_INFO);
         }
 
@@ -62,11 +112,39 @@ public class AbacController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Constants.INVALID_ACCESS_REQUEST_INFO);
         }
         if (pass) {
+            if(needSecureDB) return new AuthResponse(Constants.DK);
             return new AuthResponse(Constants.TRUE);
         }
         return new AuthResponse(Constants.FALSE);
     }
+
     //handle secure evaluation
+    public AuthResponse postEvalDBAuth(AuthRequestSecure request, String[] requiredDB) {
+
+        if(!authenticationService.dbAuthorizeCheck(request.getDbauth(), requiredDB, request.getSubUsername())) { 
+            logger.info("cannot gain access to DB");
+            return new AuthResponse(Constants.FALSE);
+            // throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Constants.INVALID_DB_AUTHORIZATION);
+        }
+
+        boolean pass = false;
+        try {
+            // assemble the real access request and forward to OpaServer
+            pass = authService.opaEval(authService.assembleAccessRequest(request.getSubUsername(),
+                    request.getObjDevId(), request.getAction(), request.getEnvInfo()));
+        } catch (JsonProcessingException e) {
+            logger.info("cannot assemble access request: {}", e.toString());
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Constants.INVALID_ACCESS_REQUEST_INFO);
+        }
+        if (pass) {
+            return new AuthResponse(Constants.TRUE);
+        }
+        return new AuthResponse(Constants.FALSE);
+
+    }
+    @PostMapping(value = "/authz/evalsecure", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    
+    @ResponseBody
     public AuthResponse postEvalSecure(@RequestBody AuthRequestSecure request) {
         // check necessary info not empty and authentication info correct
         if (!StringUtils.hasText(request.getSubUsername()) || !StringUtils.hasText(request.getSubUserPwd())
@@ -87,24 +165,25 @@ public class AbacController {
         }
         
         String[] requiredDB = new String[]{"user_attrs"}; //load the required DBs
-        if(!StringUtils.hasText(request.getAuthDB()) || !authenticationService.dbAuthorizeCheck(request.getAuthDB(), requiredDB, request.getSubUsername())) { 
-            logger.info("cannot gain access to DB");
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Constants.INVALID_DB_AUTHORIZATION);
+        if(needSecureDB2(request, requiredDB)) {
+            return postEvalDBAuth(request, requiredDB);
         }
-
-        boolean pass = false;
-        try {
-            // assemble the real access request and forward to OpaServer
-            pass = authService.opaEval(authService.assembleAccessRequest(request.getSubUsername(),
-                    request.getObjDevId(), request.getAction(), request.getEnvInfo()));
-        } catch (JsonProcessingException e) {
-            logger.info("cannot assemble access request: {}", e.toString());
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Constants.INVALID_ACCESS_REQUEST_INFO);
+        else{
+            boolean pass = false;
+            try {
+                // assemble the real access request and forward to OpaServer
+                pass = authService.opaEval(authService.assembleAccessRequest(request.getSubUsername(),
+                        request.getObjDevId(), request.getAction(), request.getEnvInfo()));
+            } catch (JsonProcessingException e) {
+                logger.info("cannot assemble access request: {}", e.toString());
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Constants.INVALID_ACCESS_REQUEST_INFO);
+            }
+            if (pass) {
+                return new AuthResponse(Constants.TRUE);
+            }
+            return new AuthResponse(Constants.FALSE);
         }
-        if (pass) {
-            return new AuthResponse(Constants.TRUE);
-        }
-        return new AuthResponse(Constants.FALSE);
+        
     }
 
     // handle device registration
@@ -189,5 +268,52 @@ public class AbacController {
     @ExceptionHandler(ResponseStatusException.class)
     ResponseEntity<String> handleResponseStatusException(ResponseStatusException e) {
         return new ResponseEntity<>(e.getMessage(), e.getStatus());
+    }
+
+    //convert request with secure db to JWT token string
+    public String jwtToken(String user, String password) {
+        try {
+            Algorithm algorithm = Algorithm.HMAC256(password);
+            String token = JWT.create()
+                .withIssuer("auth0")
+                .sign(algorithm);
+            return token;
+        } catch (JWTCreationException exception){
+            throw new JWTCreationException("JWT creation failed", exception);
+        }
+    }
+
+    public boolean needSecureDB(AuthRequest request, String[] requiredDB) {
+        boolean flag = false;
+        AuthzMapper mapper = LocalBeanFactory.getBean(AuthzMapper.class);
+        for(String table:requiredDB){
+            System.out.println(request.getSubUsername()+ ": " + table);
+            DBAccessPermPojo pojo = mapper.findAccessDate(request.getSubUsername());
+            System.out.println("found record: " + pojo.getPermDate());
+            if(Period.between(LocalDate.parse(pojo.getPermDate()), LocalDate.now()).getDays() < Constants.DAY_LIMIT) {
+                System.out.println("condition satisfied");
+            }
+            else {
+                flag = true;
+            }
+        }
+        return flag;
+    }
+
+    public boolean needSecureDB2(AuthRequestSecure request, String[] requiredDB) {
+        boolean flag = false;
+        AuthzMapper mapper = LocalBeanFactory.getBean(AuthzMapper.class);
+        for(String table:requiredDB){
+            System.out.println(request.getSubUsername()+ ": " + table);
+            DBAccessPermPojo pojo = mapper.findAccessDate(request.getSubUsername());
+            System.out.println("found record: " + pojo.getPermDate());
+            if(Period.between(LocalDate.parse(pojo.getPermDate()), LocalDate.now()).getDays() < Constants.DAY_LIMIT) {
+                System.out.println("satisfied");
+            }
+            else {
+                flag = true;
+            }
+        }
+        return flag;
     }
 }

@@ -1,21 +1,26 @@
 package pojo;
 
-public class UserAccessRequest {
+public class UserAccessRequestSecure {
     private String username;
     private String password;
     private String targetDev;
     private String action;
+    private String secured = "false";
+    private String dbAuth = "";
 
-    public UserAccessRequest() {
+    public UserAccessRequestSecure(){
         super();
     }
 
-    public UserAccessRequest(String username, String password, String targetDev, String action) {
+    public UserAccessRequestSecure(String username, String password, String targetDev, String action, String secured, String dbauth) {
         this.username = username;
         this.password = password;
         this.targetDev = targetDev;
         this.action = action;
+        this.secured = secured;
+        this.dbAuth = dbauth;
     }
+
 
     public String getUsername() {
         return username;
@@ -47,5 +52,13 @@ public class UserAccessRequest {
 
     public void setAction(String action) {
         this.action = action;
+    }
+
+    public String getSecured() {
+        return secured;
+    }
+
+    public String getDbAuth() {
+        return dbAuth;
     }
 }

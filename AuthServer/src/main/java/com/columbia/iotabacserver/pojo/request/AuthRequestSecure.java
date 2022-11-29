@@ -22,6 +22,8 @@ public class AuthRequestSecure {
     private String action;
     @JsonProperty("env_info")
     private String envInfo;
-    @JsonProperty("auth_db")
-    private String authDB = "always";
+    @JsonProperty("secured")
+    private String secured;
+    @JsonProperty("dbAuth")
+    private String dbauth;
 }

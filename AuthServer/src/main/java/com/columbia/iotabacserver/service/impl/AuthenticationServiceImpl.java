@@ -70,25 +70,51 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         return StringUtils.hasText(pojo.getActions()) ? pojo.getActions() : "";
     }
 
+    private Integer getLength(String perm) {
+        HashMap<String, Integer> converter = new HashMap<String, Integer>(){{
+            put("once", 0);
+            put("30", 30);
+            put("7", 7);
+            put("always", 99999);
+        }};
+        for(String length: converter.keySet()) {
+            if(perm.contains(length)) return converter.get(length);
+        }
+        return -1;
+    }
+
     @Override 
     public boolean dbAuthorizeCheck(String dbAuthInfo, String[] requiredDB, String userId) {
         DBAuthInfoPojo authInfo = new DBAuthInfoPojo(dbAuthInfo);
         HashMap<String, String> dbAuthInfoMap = authInfo.getDbAuthInfoMap();
         boolean flag = true;
         String secureDBName = "user_attrs";
-        for(String db:requiredDB){
-            if(db.equals(secureDBName)) {
-                DBAccessPermPojo pojo = mapper.findPermitDate(userId);
-                System.out.println("found record: " + pojo.getPermDate());
-                if(Period.between(LocalDate.parse(pojo.getPermDate()), LocalDate.now()).getDays() < Constants.DAY_LIMIT) continue;
-            }
-            if(!dbAuthInfoMap.containsKey(db) || dbAuthInfoMap.get(db).equals(Constants.NEVER)) {
+        for(String table:requiredDB){
+            if(!dbAuthInfoMap.containsKey(table)) {
                 flag = false;
+                continue;
             }
-            // TODO: record datetime in DB
-            // else if(dbAuthInfoMap.get(db).equals(Constants.ALWAYS)) {
-            //     
-            // }
+            String perm = dbAuthInfoMap.get(table);
+            if(perm.contains(Constants.ALLOW) && !perm.contains(Constants.ONCE)) {
+                DBAccessPermPojo pojo = mapper.findAccessDate(userId);
+                pojo.setPermLength(getLength(perm));
+                pojo.setPermDate((LocalDate.now().plusDays(pojo.getPermLength())).toString());
+                mapper.updateSecureDBAllow(pojo);
+            }
+            if(table.equals(secureDBName)) {
+                DBAccessPermPojo pojo = mapper.findAccessDate(userId);
+                System.out.println("found record: " + pojo.getPermDate());
+                if(Period.between(LocalDate.parse(pojo.getPermDate()), LocalDate.now()).getDays() <= 0) continue;
+            }
+            if( dbAuthInfoMap.get(table).contains(Constants.DENY)) {
+                flag = false;
+                if(!perm.contains(Constants.ONCE)) {
+                    DBAccessPermPojo pojo = mapper.findAccessDate(userId);
+                    pojo.setPermLength(getLength(perm));
+                    pojo.setPermDate((LocalDate.now().plusDays(pojo.getPermLength())).toString());
+                    mapper.updateSecureDBDeny(pojo);//bugging
+                }
+            }
         }
         return flag;
     }
