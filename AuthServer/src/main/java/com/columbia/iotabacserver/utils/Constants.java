@@ -18,4 +18,5 @@ public class Constants {
     public final static String ONCE = "once";
     public final static Integer DAY_LIMIT = 2;
     public final static String DK = "dbauth";
+    public final static String DEFAULT_TIME = "1900-01-01";
 }

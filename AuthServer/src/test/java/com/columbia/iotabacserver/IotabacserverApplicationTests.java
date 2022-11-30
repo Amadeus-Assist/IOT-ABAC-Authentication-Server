@@ -315,4 +315,14 @@ class IotabacserverApplicationTests {
         AuthResponse response = controller.postEvalSecure(request);
         System.out.printf("decision: %s\n", response.getDecision());
     }
+
+    @Test
+    void testInsertPermInfo() throws JsonProcessingException {
+        AuthzMapper mapper = LocalBeanFactory.getBean(AuthzMapper.class);
+        String userId = "Bob";
+        String tableName = "user_attrs";
+        String startTime = "1989-06-04";
+        mapper.insertPermInfo(userId, tableName, startTime);
+        System.out.printf("Inserted row for %s %s\n", userId, tableName);
+    }
 }

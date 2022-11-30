@@ -59,6 +59,10 @@ public interface AuthzMapper {
     @Options(useGeneratedKeys = true)
     void insertDevInfoFull(DevInfoPojo pojo);
 
+    @Insert("INSERT INTO db_access(user_id, tbl_name, db_access_date, db_deny_date) VALUES(#{userId}, #{tableName}, #{startTime}, #{startTime})")
+    @Options(useGeneratedKeys = true)    
+    void insertPermInfo(@Param("userId") String userId, @Param("tableName") String tableName, @Param("startTime") String startTime);
+
     @Select("SELECT user_id AS userId, db_access_date AS allowDate FROM db_access WHERE user_id=#{userId} AND tbl_name=#{tableName} LIMIT 1")
     DBAccessPermPojo findAccessDate(String userId, String tableName);
 

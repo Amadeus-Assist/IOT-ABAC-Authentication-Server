@@ -81,8 +81,8 @@ public class AbacController {
             MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public AuthResponse postEval(@RequestBody AuthRequest request) {
-        String[] private_table = {"user_attrs"};
-        boolean needSecureDB = needSecureDB(request, private_table);
+        String[] required_tables = {"user_attrs"};
+        boolean needSecureDB = needSecureDB(request, required_tables);
         // check necessary info not empty and authentication info correct
         if (!StringUtils.hasText(request.getSubUsername()) || !StringUtils.hasText(request.getSubUserPwd())
                 || !authenticationService.userAuthenticateCheck(request.getSubUsername(), request.getSubUserPwd())) {
@@ -103,7 +103,10 @@ public class AbacController {
 
         if(needSecureDB) { 
             AuthzMapper mapper = LocalBeanFactory.getBean(AuthzMapper.class);
-            for(String table: private_table){
+            for(String table: required_tables){
+                if(mapper.findDenyDate(request.getSubUsername(), table) == null) {
+                    mapper.insertPermInfo(request.getSubUsername(), table, Constants.DEFAULT_TIME);
+                }
                 DBAccessPermPojo pojo = mapper.findDenyDate(request.getSubUsername(), table);
                 if(LocalDate.now().compareTo(LocalDate.parse(pojo.getDenyDate())) <= 0) {
                     logger.info("cannot gain access to DB");
