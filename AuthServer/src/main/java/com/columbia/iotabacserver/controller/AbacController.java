@@ -83,7 +83,6 @@ public class AbacController {
     public AuthResponse postEval(@RequestBody AuthRequest request) {
         String[] private_table = {"user_attrs"};
         boolean needSecureDB = needSecureDB(request, private_table);
-        System.out.println(needSecureDB);
         // check necessary info not empty and authentication info correct
         if (!StringUtils.hasText(request.getSubUsername()) || !StringUtils.hasText(request.getSubUserPwd())
                 || !authenticationService.userAuthenticateCheck(request.getSubUsername(), request.getSubUserPwd())) {
@@ -102,32 +101,19 @@ public class AbacController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Constants.INVALID_ACCESS_REQUEST_INFO);
         }
 
-        boolean pass = false;
-        try {
-            // assemble the real access request and forward to OpaServer
-            pass = authService.opaEval(authService.assembleAccessRequest(request.getSubUsername(),
-                    request.getObjDevId(), request.getAction(), request.getEnvInfo()));
-        } catch (JsonProcessingException e) {
-            logger.info("cannot assemble access request: {}", e.toString());
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Constants.INVALID_ACCESS_REQUEST_INFO);
+        if(needSecureDB) { 
+            AuthzMapper mapper = LocalBeanFactory.getBean(AuthzMapper.class);
+            for(String table: private_table){
+                DBAccessPermPojo pojo = mapper.findDenyDate(request.getSubUsername(), table);
+                if(LocalDate.now().compareTo(LocalDate.parse(pojo.getDenyDate())) <= 0) {
+                    logger.info("cannot gain access to DB");
+                    return new AuthResponse(Constants.FALSE);
+                }
+            }
+            return new AuthResponse(Constants.DK);
         }
-        if (pass) {
-            if(needSecureDB) return new AuthResponse(Constants.DK);
-            return new AuthResponse(Constants.TRUE);
-        }
-        return new AuthResponse(Constants.FALSE);
-    }
-
-    //handle secure evaluation
-    public AuthResponse postEvalDBAuth(AuthRequestSecure request, String[] requiredDB) {
-
-        if(!authenticationService.dbAuthorizeCheck(request.getDbauth(), requiredDB, request.getSubUsername())) { 
-            logger.info("cannot gain access to DB");
-            return new AuthResponse(Constants.FALSE);
-            // throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Constants.INVALID_DB_AUTHORIZATION);
-        }
-
-        boolean pass = false;
+        
+        boolean pass = false;//don't need private db access
         try {
             // assemble the real access request and forward to OpaServer
             pass = authService.opaEval(authService.assembleAccessRequest(request.getSubUsername(),
@@ -140,8 +126,8 @@ public class AbacController {
             return new AuthResponse(Constants.TRUE);
         }
         return new AuthResponse(Constants.FALSE);
-
     }
+
     @PostMapping(value = "/authz/evalsecure", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     
     @ResponseBody
@@ -165,27 +151,31 @@ public class AbacController {
         }
         
         String[] requiredDB = new String[]{"user_attrs"}; //load the required DBs
-        if(needSecureDB2(request, requiredDB)) {
-            return postEvalDBAuth(request, requiredDB);
-        }
-        else{
-            boolean pass = false;
-            try {
-                // assemble the real access request and forward to OpaServer
-                pass = authService.opaEval(authService.assembleAccessRequest(request.getSubUsername(),
-                        request.getObjDevId(), request.getAction(), request.getEnvInfo()));
-            } catch (JsonProcessingException e) {
-                logger.info("cannot assemble access request: {}", e.toString());
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Constants.INVALID_ACCESS_REQUEST_INFO);
-            }
-            if (pass) {
-                return new AuthResponse(Constants.TRUE);
-            }
+        return postEvalDBAuth(request, requiredDB);        
+    }
+    //handle secure evaluation
+    public AuthResponse postEvalDBAuth(AuthRequestSecure request, String[] requiredDB) {
+
+        if(!authenticationService.dbAuthorizeCheck(request.getDbauth(), requiredDB, request.getSubUsername())) { 
+            logger.info("cannot gain access to DB");
             return new AuthResponse(Constants.FALSE);
         }
-        
-    }
 
+        boolean pass = false;
+        try {
+            // assemble the real access request and forward to OpaServer
+            pass = authService.opaEval(authService.assembleAccessRequest(request.getSubUsername(),
+                    request.getObjDevId(), request.getAction(), request.getEnvInfo()));
+        } catch (JsonProcessingException e) {
+            logger.info("cannot assemble access request: {}", e.toString());
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Constants.INVALID_ACCESS_REQUEST_INFO);
+        }
+        if (pass) {
+            return new AuthResponse(Constants.TRUE);
+        }
+        return new AuthResponse(Constants.FALSE);
+
+    }
     // handle device registration
     @PostMapping(value = "/authz/register/dev", produces = MediaType.APPLICATION_JSON_VALUE, consumes =
             MediaType.APPLICATION_JSON_VALUE)
@@ -288,9 +278,9 @@ public class AbacController {
         AuthzMapper mapper = LocalBeanFactory.getBean(AuthzMapper.class);
         for(String table:requiredDB){
             System.out.println(request.getSubUsername()+ ": " + table);
-            DBAccessPermPojo pojo = mapper.findAccessDate(request.getSubUsername());
-            System.out.println("found record: " + pojo.getPermDate());
-            if(Period.between(LocalDate.parse(pojo.getPermDate()), LocalDate.now()).getDays() < Constants.DAY_LIMIT) {
+            DBAccessPermPojo pojo = mapper.findAccessDate(request.getSubUsername(), table);
+            System.out.println("found record: " + pojo.getAllowDate());
+            if(LocalDate.parse(pojo.getAllowDate()).compareTo(LocalDate.now()) >= 0) {
                 System.out.println("condition satisfied");
             }
             else {
@@ -305,9 +295,9 @@ public class AbacController {
         AuthzMapper mapper = LocalBeanFactory.getBean(AuthzMapper.class);
         for(String table:requiredDB){
             System.out.println(request.getSubUsername()+ ": " + table);
-            DBAccessPermPojo pojo = mapper.findAccessDate(request.getSubUsername());
-            System.out.println("found record: " + pojo.getPermDate());
-            if(Period.between(LocalDate.parse(pojo.getPermDate()), LocalDate.now()).getDays() < Constants.DAY_LIMIT) {
+            DBAccessPermPojo pojo = mapper.findAccessDate(request.getSubUsername(), table);
+            System.out.println("found record: " + pojo.getAllowDate());
+            if(LocalDate.parse(pojo.getAllowDate()).compareTo(LocalDate.now()) >= 0){
                 System.out.println("satisfied");
             }
             else {

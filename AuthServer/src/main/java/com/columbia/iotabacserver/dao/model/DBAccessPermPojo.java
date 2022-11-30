@@ -15,8 +15,10 @@ import java.io.Serializable;
 
 public class DBAccessPermPojo implements Serializable {
     private static final long serialVersionUID = 398861713491327731L;
-
+    String tableName;
     String userId;
-    String permDate;
-    int permLength;
+    String allowDate;
+    int allowLength;
+    String denyDate;
+    int denyLength;
 }
