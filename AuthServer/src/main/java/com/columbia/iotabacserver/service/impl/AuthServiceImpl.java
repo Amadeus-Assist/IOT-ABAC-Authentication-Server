@@ -1,6 +1,8 @@
 package com.columbia.iotabacserver.service.impl;
 
+import com.columbia.iotabacserver.dao.dbutils.DatabaseOperation;
 import com.columbia.iotabacserver.dao.mapper.AuthzMapper;
+import com.columbia.iotabacserver.dao.model.UserAttrsPojo;
 import com.columbia.iotabacserver.exception.BadRequestException;
 import com.columbia.iotabacserver.exception.UnexpectedHttpException;
 import com.columbia.iotabacserver.pojo.jackson_model.AccessRequestModel;
@@ -29,6 +31,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import com.columbia.iotabacserver.dao.dbutils.DatabaseOperation;
 
 @Service
 public class AuthServiceImpl implements AuthService {
@@ -96,8 +99,16 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public String assembleAccessRequest(String username, String objId, String action, String envInfo) throws JsonProcessingException {
-        Map<?, ?> subAttrsMap = Utils.jacksonMapper.readValue(mapper.findUserAttrs(username).getAttrs(),
+        UserAttrsPojo pojo = new UserAttrsPojo();
+        try{
+            pojo = DatabaseOperation.findUserAttrs(username);
+        } catch (IOException e) {
+            logger.info("cannot assemble access request: {}", e.toString());
+        }
+        Map<?, ?> subAttrsMap = Utils.jacksonMapper.readValue(pojo.getAttrs(),
                 HashMap.class);
+        // Map<?, ?> subAttrsMap = Utils.jacksonMapper.readValue(mapper.findUserAttrs(username).getAttrs(),
+        //         HashMap.class);
         Map<?, ?> objAttrsMap = Utils.jacksonMapper.readValue(mapper.findDevAttrs(objId).getAttrs(), HashMap.class);
         Map<?, ?> envInfoMap = Utils.jacksonMapper.readValue(envInfo, HashMap.class);
         AccessRequestModel requestModel = new AccessRequestModel(subAttrsMap, objAttrsMap, action, envInfoMap);
