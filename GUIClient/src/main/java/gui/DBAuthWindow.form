@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="gui.DBAuthWindow">
-  <grid id="cbd77" binding="mainPanel" layout-manager="GridLayoutManager" row-count="6" column-count="4" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+  <grid id="cbd77" binding="mainPanel" layout-manager="GridLayoutManager" row-count="8" column-count="4" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
     <margin top="10" left="15" bottom="15" right="15"/>
     <constraints>
       <xy x="48" y="54" width="490" height="490"/>
@@ -10,8 +10,8 @@
     <children>
       <component id="ea89d" class="javax.swing.JLabel" binding="permissionsListLabel">
         <constraints>
-          <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
-            <preferred-size width="101" height="16"/>
+          <grid row="2" column="1" row-span="2" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
+            <preferred-size width="101" height="77"/>
           </grid>
         </constraints>
         <properties>
@@ -46,7 +46,9 @@
       </scrollpane>
       <scrollpane id="6e225" binding="permissionsScrollPane">
         <constraints>
-          <grid row="2" column="2" row-span="2" col-span="2" vsize-policy="3" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+          <grid row="2" column="2" row-span="4" col-span="1" vsize-policy="3" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false">
+            <preferred-size width="158" height="160"/>
+          </grid>
         </constraints>
         <properties/>
         <border type="none"/>
@@ -58,20 +60,21 @@
               <model>
                 <item value="allow once"/>
                 <item value="allow in 7 days"/>
-                <item value="allow in 30 days"/>
                 <item value="always allow"/>
                 <item value="deny once"/>
                 <item value="deny in 7 days"/>
-                <item value="deny in 30 days"/>
                 <item value="always deny"/>
               </model>
+              <valueIsAdjusting value="false"/>
             </properties>
           </component>
         </children>
       </scrollpane>
       <scrollpane id="ca288" binding="permScrollPane">
         <constraints>
-          <grid row="4" column="2" row-span="1" col-span="1" vsize-policy="7" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+          <grid row="6" column="2" row-span="1" col-span="1" vsize-policy="7" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false">
+            <preferred-size width="158" height="22"/>
+          </grid>
         </constraints>
         <properties/>
         <border type="none"/>
@@ -84,7 +87,7 @@
       </scrollpane>
       <component id="923c3" class="javax.swing.JButton" binding="sendButton">
         <constraints>
-          <grid row="4" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false">
+          <grid row="6" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false">
             <preferred-size width="101" height="30"/>
           </grid>
         </constraints>
@@ -105,7 +108,7 @@
       </component>
       <component id="8c8bc" class="javax.swing.JButton" binding="addButton" default-binding="true">
         <constraints>
-          <grid row="3" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false">
+          <grid row="4" column="1" row-span="2" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false">
             <preferred-size width="78" height="57"/>
           </grid>
         </constraints>
@@ -115,7 +118,7 @@
       </component>
       <scrollpane id="828ff" binding="loggerScrollPane">
         <constraints>
-          <grid row="4" column="3" row-span="1" col-span="1" vsize-policy="7" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+          <grid row="6" column="3" row-span="1" col-span="1" vsize-policy="7" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties/>
         <border type="none"/>
@@ -128,19 +131,49 @@
       </scrollpane>
       <vspacer id="cc693">
         <constraints>
-          <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
+          <grid row="6" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
         </constraints>
       </vspacer>
       <hspacer id="90dc7">
         <constraints>
-          <grid row="5" column="2" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+          <grid row="7" column="2" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false">
+            <preferred-size width="158" height="11"/>
+          </grid>
         </constraints>
       </hspacer>
       <hspacer id="c67d2">
         <constraints>
-          <grid row="5" column="3" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+          <grid row="7" column="3" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
         </constraints>
       </hspacer>
+      <component id="ceb37" class="javax.swing.JSpinner" binding="denySpinner">
+        <constraints>
+          <grid row="5" column="3" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties/>
+      </component>
+      <component id="8bf80" class="javax.swing.JSpinner" binding="allowSpinner">
+        <constraints>
+          <grid row="3" column="3" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties/>
+      </component>
+      <component id="6d9a0" class="javax.swing.JRadioButton" binding="customDenyButton">
+        <constraints>
+          <grid row="4" column="3" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text value="deny in custom days"/>
+        </properties>
+      </component>
+      <component id="89c61" class="javax.swing.JRadioButton" binding="customAllowButton">
+        <constraints>
+          <grid row="2" column="3" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text value="Allow in custom days"/>
+        </properties>
+      </component>
     </children>
   </grid>
 </form>

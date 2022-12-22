@@ -5,7 +5,7 @@ import org.apache.ibatis.annotations.*;
 
 @Mapper
 public interface AuthzMapper {
-
+// The commented out functions are moved to DB Server
     @Select("SELECT ref, content FROM rego_policy_repository WHERE ref=#{ref} LIMIT 1")
     PolicyPojo findPolicy(String ref);
 

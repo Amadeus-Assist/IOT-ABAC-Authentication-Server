@@ -75,29 +75,28 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override 
-    public boolean dbAuthorizeCheck(String dbAuthInfo, String[] requiredDB, String userId) {
+    public boolean dbAuthorizeCheck(String dbAuthInfo, String[] requiredDB, String userId) { //This function help to check all the Secure DB requirements
         DBAuthInfoPojo authInfo = new DBAuthInfoPojo(dbAuthInfo);
         HashMap<String, String> dbAuthInfoMap = authInfo.getDbAuthInfoMap();
         boolean flag = true;
         HashSet<String> secureDB = new HashSet<String>();
-        secureDB.add("user_attrs");
+        secureDB.add("user_attrs");//Set the private tables here
         for(String table:requiredDB){
             if(!secureDB.contains(table)) continue;//pass if not secure DB
 
-            // DBAccessPermPojo pojo = mapper.findAccessDate(userId, table);
             DBAccessPermPojo pojo = new DBAccessPermPojo();
             try{
                 pojo = DatabaseOperation.findRemoteAccessDate(userId, table);
             } catch (IOException e) {
                 logger.info("cannot assemble access request: {}", e.toString());
             }
-            if(pojo.getAllowDate()!= null && LocalDate.parse(pojo.getAllowDate()).compareTo(LocalDate.now()) >= 0) continue; // has record
+            if(pojo.getAllowDate()!= null && LocalDate.parse(pojo.getAllowDate()).compareTo(LocalDate.now()) >= 0) continue; // has record, already allowed to use
 
-            if(!dbAuthInfoMap.containsKey(table)) {
+            if(!dbAuthInfoMap.containsKey(table)) { //no permission info about this table
                 return false;
             }
             String perm = dbAuthInfoMap.get(table);
-            if(perm.contains(Constants.DENY)) {
+            if(perm.contains(Constants.DENY)) { // if the user deny to grant the permission to use this table
                 flag = false;
             }
         }
