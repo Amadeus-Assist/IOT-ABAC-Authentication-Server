@@ -133,9 +133,6 @@ public class DBAuthWindow extends JDialog {
                 DevInfo targetDevInfo = nearByDevices.get(targetDevId);
                 String url = "http://localhost:" + targetDevInfo.getPort() + "/iot-client/access-request";
                 CloseableHttpResponse response2;
-                for(String str: permMap.keySet()) {
-                    Utils.appendToPane(loggerTextPane, str+"\n", Color.orange);
-                }
                 try {
                     String accessRequestBody = ClientService.generateSecureAccessRequestBodyFromUser(context.getUsername(),
                             context.getPassword(), targetDevId, "read", "true", "user_attrs:" + permMap.get("user_attrs"));

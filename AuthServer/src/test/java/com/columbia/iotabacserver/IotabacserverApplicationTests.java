@@ -26,6 +26,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.ResourceUtils;
+
+import com.columbia.iotabacserver.utils.Constants;
 import com.columbia.iotabacserver.utils.LocalBeanFactory;
 import org.springframework.web.client.RestTemplate;
 
@@ -314,5 +316,14 @@ class IotabacserverApplicationTests {
         // 2nd time req
         AuthResponse response = controller.postEvalSecure(request);
         System.out.printf("decision: %s\n", response.getDecision());
+    }
+
+    @Test
+    void testInsertPermInfo() throws JsonProcessingException {
+        AuthzMapper mapper = LocalBeanFactory.getBean(AuthzMapper.class);
+        String userId = "Bob";
+        String tableName = "user_names";
+        mapper.insertPermInfo(userId, tableName, Constants.DEFAULT_TIME);
+        System.out.printf("Inserted row for %s %s\n", userId, tableName);
     }
 }
