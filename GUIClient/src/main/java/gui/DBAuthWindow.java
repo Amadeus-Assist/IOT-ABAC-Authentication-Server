@@ -19,7 +19,7 @@ import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Collections;
+
 public class DBAuthWindow extends JDialog {
     private JList<String> tablesJList;
     private JList<String> permissionsJList;
@@ -38,6 +38,10 @@ public class DBAuthWindow extends JDialog {
     private JScrollPane loggerScrollPane;
     private JButton addButton;
     private JTextPane permTextPane;
+    private JSpinner allowSpinner;
+    private JSpinner denySpinner;
+    private JRadioButton customDenyButton;
+    private JRadioButton customAllowButton;
     private JScrollPane tablesListJScrollPane;
     private JScrollPane permissionsJScrollPane;
     private final ClientContext context;
@@ -88,7 +92,7 @@ public class DBAuthWindow extends JDialog {
                     context.getSearchService().getNearByDevices().forEach((k, v) -> {
                         tablesListModel.addElement("user_attrs");
                         DefaultListModel<String> localModel = new DefaultListModel<>();
-                        String[] permissions = {"allow once", "allow in 7 days", "allow in 30 days", "always allow", "deny once", "deny in 7 days", "deny in 30 days", "always deny"};
+                        String[] permissions = {"allow once", "allow in 7 days", "always allow", "deny once", "deny in 7 days", "always deny"};
                         for (String perm:permissions) {
                             localModel.addElement(perm);
                         }
@@ -116,7 +120,14 @@ public class DBAuthWindow extends JDialog {
             @Override
             public void mouseClicked(MouseEvent e) {
                 String targetTable = tablesJList.getSelectedValue();
-                String targetPerm = permissionsJList.getSelectedValue();
+                String targetPerm;
+                if(customAllowButton.isSelected() && allowSpinner.getValue() != null) {
+                    targetPerm = "allow in " + allowSpinner.getValue() + " days";
+                }
+                else if(customDenyButton.isSelected()) {
+                    targetPerm = "deny in " + denySpinner.getValue() + " days";
+                }
+                else {targetPerm = permissionsJList.getSelectedValue();}
                 if(!Utils.hasText(targetTable) || !Utils.hasText(targetPerm)) {
                     Utils.appendToPane(loggerTextPane, "Please select table and permission\n", Color.red);
                     return;

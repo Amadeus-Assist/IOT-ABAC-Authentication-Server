@@ -10,9 +10,16 @@ import pojo.UserAccessRequest;
 import pojo.UserAccessRequestSecure;
 import utils.Utils;
 
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTCreationException;
+
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+
+import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
 
 public class ClientService {
 //    private static final ObjectMapper mapper = new ObjectMapper();
@@ -80,4 +87,34 @@ public class ClientService {
         get.setHeader("Content-type", "application/json");
         return client.execute(get);
     }
+
+    public static CloseableHttpResponse sendJwtToken(CloseableHttpClient client, String user, String password, String message) throws IOException {
+        String jwt = jwtToken(user, password, message);
+        String json = "{\"client_message\":\"" + jwt + "\"}";
+        System.out.println(json);
+        //try to send it?
+        String urlstr = "http://localhost:3333/jwt";
+        HttpPost post = new HttpPost(urlstr);
+        StringEntity entity = new StringEntity(json);
+        post.setEntity(entity);
+        post.setHeader("Accept", "application/json");
+        post.setHeader("Content-type", "application/json");
+        return client.execute(post);
+    }
+    //convert request with secure db to JWT token string
+    public static String jwtToken(String user, String password, String message) throws JWTCreationException{
+        String token;
+        try {
+        Algorithm algorithm = Algorithm.HMAC256(password);
+        token = JWT.create()
+                .withIssuer("auth0")
+                .withSubject(message)
+                .withClaim("user", user)
+                .sign(algorithm);
+        } catch (JWTCreationException exception) {
+            throw exception;
+        }
+        return token;
+    }
+
 }
