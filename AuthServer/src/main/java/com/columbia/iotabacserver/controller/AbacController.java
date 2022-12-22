@@ -78,7 +78,7 @@ public class AbacController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Constants.INVALID_ACCESS_REQUEST_INFO);
         }
 
-        if(needSecureDB) { 
+        if(needSecureDB) {  // Need to check DB permission
             AuthzMapper mapper = LocalBeanFactory.getBean(AuthzMapper.class);
             for(String table: required_tables){
                 // DBAccessPermPojo pojo = mapper.findDenyDate(request.getSubUsername(), table);
@@ -98,7 +98,7 @@ public class AbacController {
                     return new AuthResponse(Constants.FALSE);
                 }
             }
-            return new AuthResponse(Constants.DK);
+            return new AuthResponse(Constants.DK); // further confirmation is required, return status "don't know"
         }
         
         boolean pass = false;//don't need private db access
